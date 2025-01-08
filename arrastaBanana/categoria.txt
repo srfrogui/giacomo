@@ -1,0 +1,3 @@
+# Adicione aqui as categorias
+_org,organizacao
+_ALE,ALEXANDREFABRICA
