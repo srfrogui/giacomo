@@ -393,7 +393,7 @@ def gerar_aciete(pasta_arquivo):
 
         opzinha = str(op) if op is not None else ""
         
-        aceite_data["op"] = opzinha
+        aceite_data["opField"] = f"OP {opzinha}"
         aceite_data["ripado"] = str(ripado) if ripado is not None else ""
         aceite_data["router"] = str(router) if router is not None else ""
         aceite_data["engrosso"] = str(engrosso) if engrosso is not None else ""
