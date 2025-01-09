@@ -333,8 +333,13 @@ def gerar_aciete(pasta_arquivo):
                 'canal': 0,
                 'furodob': 0,
                 'cortes': 0,
-                'cortePerfil': 0
+                'cortePerfil': 0,
+                'tipoCanal': ''
             }
+
+            # Flag para identificar se "usi_rasgo_7mm" ou "usi_rebaixo_4mm" aparecem
+            rasgo_found = False
+            canal_led_found = False
 
             # Itera sobre cada regexData e faz a contagem para cada campo
             for item in regexData:
@@ -344,11 +349,27 @@ def gerar_aciete(pasta_arquivo):
                 for match in matches:
                     # A quantidade que deve ser somada é o primeiro grupo (o número encontrado)
                     result[item['field']] += int(match[0])  # match[0] é o número encontrado
+                    
+                    # Verifica se as condições para tipoCanal são atendidas
+                    if item['field'] == 'canal':
+                        if 'usi_rasgo_7mm' in match[2]:
+                            rasgo_found = True
+                        if 'usi_rebaixo_4mm' in match[2]:
+                            canal_led_found = True
+
+            # Define o valor de tipoCanal com base nas condições
+            if rasgo_found and canal_led_found:
+                result['tipoCanal'] = 'RASGO E CANAL LED'
+            elif rasgo_found:
+                result['tipoCanal'] = 'RASGO'
+            elif canal_led_found:
+                result['tipoCanal'] = 'CANAL LED'
+            
             print(result)
             # Retorna o dicionário com as somas de cada campo
             return result
         
-        return None 
+        return result
     
     def get_ttpecas(pasta_vendedor):
             # Caminho completo para o arquivo de texto
