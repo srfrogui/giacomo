@@ -320,7 +320,7 @@ def gerar_aciete(pasta_arquivo):
             regexData = [
                 { 'regex': r'(\d+)\s*(ML|M2|UN)\s*(ser_cor_lam_45g|lam_topo|ser_lam_lar|ser_lam_est)', 'field': 'fitagem' },
                 { 'regex': r'(\d+)\s*(ML|M2|UN)\s*furo_cnc_(20mm|10mm|3mm|15mm|1mm|5mm|8mm)', 'field': 'furosist' },
-                { 'regex': r'(\d+)\s*(ML|M2|UN)\s*(usi_rebaixo_4mm|usi_rasgo_7mm)', 'field': 'canal' },
+                { 'regex': r'(\d+)\s*(ML|M2|UN)\s*(usi_rebaixo_7|usi_rebaixo_4|usi_rasgo_7|usi_rasgo_4)', 'field': 'canal' },
                 { 'regex': r'(\d+)\s*(ML|M2|UN)\s*furo_cnc_35mm', 'field': 'furodob' },
                 { 'regex': r'(\d+)\s*(ML|M2|UN)\s*ser_corte_015', 'field': 'cortes' },
                 { 'regex': r'(\d+)\s*(ML|M2|UN)\s*servico_(instal_perfil|corte_barra)_015', 'field': 'cortePerfil' }
@@ -337,9 +337,11 @@ def gerar_aciete(pasta_arquivo):
                 'tipoCanal': ''
             }
 
-            # Flag para identificar se "usi_rasgo_7mm" ou "usi_rebaixo_4mm" aparecem
-            rasgo_found = False
-            canal_led_found = False
+            # Flag para identificar se "usi_rasgo" ou "usi_rebaixo" aparecem para 7MM e 4MM
+            rasgo7_found = False
+            canal7_found = False
+            rasgo4_found = False
+            canal4_found = False
 
             # Itera sobre cada regexData e faz a contagem para cada campo
             for item in regexData:
@@ -352,19 +354,33 @@ def gerar_aciete(pasta_arquivo):
                     
                     # Verifica se as condições para tipoCanal são atendidas
                     if item['field'] == 'canal':
-                        if 'usi_rasgo_7mm' in match[2]:
-                            rasgo_found = True
-                        if 'usi_rebaixo_4mm' in match[2]:
-                            canal_led_found = True
+                        if 'usi_rasgo_7' in match[2]:
+                            rasgo7_found = True
+                        if 'usi_rebaixo_7' in match[2]:
+                            canal7_found = True
+                        if 'usi_rasgo_4' in match[2]:
+                            rasgo4_found = True
+                        if 'usi_rebaixo_4' in match[2]:
+                            canal4_found = True
 
             # Define o valor de tipoCanal com base nas condições
-            if rasgo_found and canal_led_found:
-                result['tipoCanal'] = 'RASGO E CANAL LED'
-            elif rasgo_found:
-                result['tipoCanal'] = 'RASGO'
-            elif canal_led_found:
-                result['tipoCanal'] = 'CANAL LED'
-            
+            if rasgo7_found and canal7_found:
+                result['tipoCanal'] = 'CANAL 7MM E REBAIXO 7MM'
+            elif rasgo4_found and canal4_found:
+                result['tipoCanal'] = 'CANAL 4MM E REBAIXO 4MM'
+            elif rasgo7_found and canal4_found:
+                result['tipoCanal'] = 'CANAL 7MM E REBAIXO 4MM'
+            elif rasgo4_found and canal7_found:
+                result['tipoCanal'] = 'CANAL 4MM E REBAIXO 7MM'
+            elif rasgo7_found:
+                result['tipoCanal'] = 'CANAL 7MM'
+            elif canal7_found:
+                result['tipoCanal'] = 'REBAIXO 7MM'
+            elif rasgo4_found:
+                result['tipoCanal'] = 'CANAL 4MM'
+            elif canal4_found:
+                result['tipoCanal'] = 'REBAIXO 4MM'
+                        
             print(result)
             # Retorna o dicionário com as somas de cada campo
             return result
@@ -403,7 +419,7 @@ def gerar_aciete(pasta_arquivo):
         nome_projeto = obter_nome(pasta_arquivo)  # Suponha que essa função está retornando um nome válido
         
         aceite_data = {}
-
+        
         op = get_op(pasta_arquivo)
         ripado = get_totTiraRipado(pasta_vendedor)
         router = get_totPainelRouter(pasta_vendedor)
@@ -414,11 +430,12 @@ def gerar_aciete(pasta_arquivo):
 
         opzinha = str(op) if op is not None else ""
         
+        aceite_data["projeto"] = str(nome_projeto) if nome_projeto is not None else ""
         aceite_data["opField"] = f"OP {opzinha}"
-        aceite_data["ripado"] = str(ripado) if ripado is not None else ""
-        aceite_data["router"] = str(router) if router is not None else ""
-        aceite_data["engrosso"] = str(engrosso) if engrosso is not None else ""
-        aceite_data["usinagem"] = str(usinagem) if usinagem is not None else ""
+        aceite_data["ripado"] = str(ripado) if ripado is not None else "0"
+        aceite_data["router"] = str(router) if router is not None else "0"
+        aceite_data["engrosso"] = str(engrosso) if engrosso is not None else "0"
+        aceite_data["usinagem"] = str(usinagem) if usinagem is not None else "0"
         aceite_data["fitagem"] = str(result.get("fitagem", ""))
         aceite_data["espengrosso"] = str(esp) if esp is not None else ""
         aceite_data["furosist"] = str(result.get("furosist", ""))
@@ -426,6 +443,7 @@ def gerar_aciete(pasta_arquivo):
         aceite_data["furodob"] = str(result.get("furodob", ""))
         aceite_data["cortes"] = str(result.get("cortes", ""))
         aceite_data["corteperfil"] = str(result.get("cortePerfil", ""))
+        aceite_data["tipoCanal"] = str(result.get("tipoCanal", ""))
         aceite_data["ttpecas"] = str(ttpecas) if ttpecas is not None else ""
 
         # Verifique se os dados estão corretos antes de gravar
