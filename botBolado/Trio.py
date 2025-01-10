@@ -5,7 +5,6 @@ from embananador import criar_arquivo_com_pecas, gerar_relatorio_pecas, gerar_ac
 from G2Auto import obter_caminhos, importar_optimiza, exportar_plano_corte , limpar_lista, log_file_N, clicar, aguarde, procurar, obter_nome,compress_to_rar, gerar_relatorio_pdf, gerar_pdfs
 from Moveu import moveu, log_file_M
 from contar_chapas import gerar_pdf_com_tabela
-from arrasta_banana import main as arrasta_banana
 
 import multiprocessing
 import time
