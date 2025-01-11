@@ -230,6 +230,7 @@ import pdfplumber
 import glob
 import json
 import re
+from collections import Counter
 
 def gerar_aciete(pasta_arquivo):
 
@@ -271,13 +272,24 @@ def gerar_aciete(pasta_arquivo):
                 return match.group(1)
         
         return None
-    
+   
     def get_totTiraRipado(pasta_vendedor):
         texto = ler_pdf(pasta_vendedor, "Listagem_Pecas.pdf")
         if texto:
             ripado = re.findall(r'_TIRA RIPADO', texto, flags=re.IGNORECASE)
-            return len(ripado)  # Retorna o número de ocorrências encontradas
-        return None
+            # Encontrar as ocorrências de 'Abrir em Xmm', onde X é qualquer valor numérico
+            valores = re.findall(r'Abrir em (\d+)mm', texto)
+            
+            # Contar as ocorrências dos valores encontrados
+            contagem_valores = Counter(valores)
+            
+            # Criar a string formatada para os valores
+            valores_formatados = " ".join([f"({contagem}){valor}mm" for valor, contagem in contagem_valores.items()])
+            
+            # Retorna o número de ocorrências de '_TIRA RIPADO' e os valores formatados
+            return len(ripado), valores_formatados
+        
+        return None, None
             
     def get_totPainelRouter(pasta_vendedor):
         texto = ler_pdf(pasta_vendedor, "Router.pdf")
@@ -421,7 +433,7 @@ def gerar_aciete(pasta_arquivo):
         aceite_data = {}
         
         op = get_op(pasta_arquivo)
-        ripado = get_totTiraRipado(pasta_vendedor)
+        ripado, abrirem = get_totTiraRipado(pasta_vendedor)
         router = get_totPainelRouter(pasta_vendedor)
         engrosso, esp = get_totEngrosso(pasta_vendedor)
         usinagem = get_totFrente45(pasta_vendedor)
@@ -433,6 +445,7 @@ def gerar_aciete(pasta_arquivo):
         aceite_data["projeto"] = str(nome_projeto) if nome_projeto is not None else ""
         aceite_data["opField"] = f"OP {opzinha}"
         aceite_data["ripado"] = str(ripado) if ripado is not None else "0"
+        aceite_data["abrirem"] = str(abrirem) if abrirem is not None else ""
         aceite_data["router"] = str(router) if router is not None else "0"
         aceite_data["engrosso"] = str(engrosso) if engrosso is not None else "0"
         aceite_data["usinagem"] = str(usinagem) if usinagem is not None else "0"
