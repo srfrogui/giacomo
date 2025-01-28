@@ -1,3 +1,5 @@
+import time
+import webbrowser
 from reportlab.lib.pagesizes import letter, landscape
 from reportlab.pdfgen import canvas
 from reportlab.lib import colors
@@ -130,9 +132,9 @@ class GeradorPDFApp:
                     return
 
                 # Gerar PDF
-                nome_pdf = os.path.join(pasta, "Itens_Faltantes.pdf")
+                nome_pdf = os.path.join(pasta, f"Itens_Faltantes_{int(time.time())}.pdf")
                 self.criar_pdf(df_filtrado, nome_pdf, caminho_imagens)
-
+                webbrowser.open(f'file:///{os.path.abspath(nome_pdf)}')
                 messagebox.showinfo("Sucesso", f"PDF gerado com sucesso: {nome_pdf}")
             except Exception as e:
                 messagebox.showerror("Erro", f"Ocorreu um erro: {str(e)}")
@@ -312,6 +314,7 @@ class GeradorPDFApp:
 
             # Salvar o PDF
             c.save()
+            
 
 if __name__ == "__main__":
     root = Tk()
