@@ -131,18 +131,20 @@ class GeradorPDFApp:
                     messagebox.showinfo("Aviso", "Nenhum dado encontrado com os filtros aplicados.")
                     return
 
+
+                nome_projeto = os.path.basename(pasta)
                 # Gerar PDF
-                nome_pdf = os.path.join(pasta, f"Itens_Faltantes_{int(time.time())}.pdf")
-                self.criar_pdf(df_filtrado, nome_pdf, caminho_imagens)
+                nome_pdf = os.path.join(pasta, f"Itens_Faltantes_{nome_projeto}_{int(time.time())}.pdf")
+                self.criar_pdf(df_filtrado, nome_pdf, caminho_imagens, nome_projeto)
                 webbrowser.open(f'file:///{os.path.abspath(nome_pdf)}')
-                messagebox.showinfo("Sucesso", f"PDF gerado com sucesso: {nome_pdf}")
+                # messagebox.showinfo("Sucesso", f"PDF gerado com sucesso: {nome_pdf}")
             except Exception as e:
                 messagebox.showerror("Erro", f"Ocorreu um erro: {str(e)}")
                 
         except Exception as e:
             print(f"Erro ao processar o arquivo Excel: {e}")
 
-    def criar_pdf(self, df_filtrado, nome_pdf, caminho_imagens):
+    def criar_pdf(self, df_filtrado, nome_pdf, caminho_imagens, nome_projeto):
             """Cria o PDF a partir do DataFrame filtrado."""
             # Dicionário de mapeamento de colunas
             mapeamento_colunas = {
@@ -175,6 +177,14 @@ class GeradorPDFApp:
             inicio_y = altura - 30
             y_pos = inicio_y 
 
+            # Definindo a posição para o título "PEÇAS FILTRADAS"
+
+            # Adicionar o texto "PEÇAS FILTRADAS"
+            c.setFont("Helvetica-Bold", 14)  # Definindo a fonte para o título
+            c.drawString(100, y_pos, f"PROJETI >> {nome_projeto}")  # Desenhando o texto na posição
+            y_pos -= 30  # Ajuste após o título
+            
+            
             # Títulos das colunas
             colunas_interesse = [
                 "PCP", "CLIENTE", "MATERIAL", "ESP", "QTN",
