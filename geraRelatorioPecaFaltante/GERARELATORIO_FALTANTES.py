@@ -189,7 +189,8 @@ class GeradorPDFApp:
             colunas_interesse = [
                 "PCP", "CLIENTE", "MATERIAL", "ESP", "QTN",
                 "ALTURA (X)", "PROF (Y)", "DESENHO",
-                "PEÇA DESCRIÇÃO", "PROG. 1", "PROG. 2", "PECA ID", "COD"
+                "PEÇA DESCRIÇÃO", "PROG. 1", "PROG. 2", 
+                # "PECA ID", "COD"
             ]
             
             # Preparando os dados da tabela (extração do DataFrame)
@@ -218,15 +219,15 @@ class GeradorPDFApp:
             # Define largura das colunas como antes
             colWidths = [largura_coluna] * len(colunas_interesse)
             colWidths[0] = 30
-            colWidths[1] = 100
+            colWidths[1] = 150
             colWidths[2] = 150  # Aumenta a largura da segunda coluna (MATERIAL)
             colWidths[3] = 20
             colWidths[4] = 20
             colWidths[6] = 45
-            colWidths[8] = 65
+            colWidths[8] = 110
             colWidths[9] = 60
-            colWidths[10] = 50
-            colWidths[11] = 50
+            # colWidths[10] = 50
+            # colWidths[11] = 50
 
             # Adicionar cabeçalho ao PDF
             tabela_cabecalho = Table([colunas_interesse], colWidths=colWidths, rowHeights=altura_linha)
