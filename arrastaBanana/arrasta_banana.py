@@ -80,16 +80,12 @@ def prepare_destination_nesting(nome_pasta, folder, corte_path):
     if os.path.exists(source_nesting) and os.path.isdir(source_nesting):
         destination_nesting = os.path.join(corte_path, nome_pasta, "Nesting")
         
-        # Check if the 'Nesting' folder already exists in the destination
-        if not os.path.exists(destination_nesting):
-            # Create the destination directory if it doesn't exist
-            os.makedirs(os.path.dirname(destination_nesting), exist_ok=True)
-            
-            # Log message and copy the files with progress
-            log_message("Copiando arquivos de Nesting...")
-            copy_with_progress(source_nesting, destination_nesting)
-        else:
-            log_message("A pasta 'Nesting' já existe no destino, pulando a cópia.")
+        # Create the destination directory if it doesn't exist
+        os.makedirs(os.path.dirname(destination_nesting), exist_ok=True)
+        
+        # Log message and copy the files with progress
+        log_message("Copiando arquivos de Nesting...")
+        copy_with_progress(source_nesting, destination_nesting)
     else:
         log_message("A pasta 'Nesting' não foi encontrada, pulando a cópia.")
 
@@ -133,12 +129,12 @@ def close_window():
 def main():
     global progress_var, progress_label, text_log, root
 
-    backup_path = r'Z:\PROJETOS PROMOB\PROMOB PROJJE\OMAR'
-    furacao_path = r'X:\FURAÇÃO PROMOB'
+    backup_path = r'X:\PROJETOS PROMOB\PROMOB PROJJE\OMAR'
+    furacao_path = r'V:\FURAÇÃO PROMOB'
     img_path = r'C:\Giben\GvisionXPPROMOB\CNC\Media\Img'
-    etiqueta_path = r'X:\ETIQUETA GVISION GPLAN PROMOB'
+    etiqueta_path = r'V:\ETIQUETA GVISION GPLAN PROMOB'
     categorias_file = 'categoria.txt'
-    nesting_path= r'X:\CORTE G2 NESTING'
+    nesting_path= r'V:\CORTE G2 NESTING'
     
     root = tk.Tk()
     root.title("Backup de Pastas")
