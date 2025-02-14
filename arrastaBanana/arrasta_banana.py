@@ -129,12 +129,12 @@ def close_window():
 def main():
     global progress_var, progress_label, text_log, root
 
-    backup_path = r'X:\PROJETOS PROMOB\PROMOB PROJJE\OMAR'
-    furacao_path = r'V:\FURAÇÃO PROMOB'
+    backup_path = r'Z:\BACKUP ALEXANDRE\PROJETOS PROMOB\PROMOB PROJJE\OMAR'
     img_path = r'C:\Giben\GvisionXPPROMOB\CNC\Media\Img'
-    etiqueta_path = r'V:\ETIQUETA GVISION GPLAN PROMOB'
     categorias_file = 'categoria.txt'
-    nesting_path= r'V:\CORTE G2 NESTING'
+    furacao_path = r'Z:\PRODUCAO\FURAÇÃO PROMOB'
+    etiqueta_path = r'Z:\PRODUCAO\ETIQUETA GVISION GPLAN PROMOB'
+    nesting_path= r'Z:\PRODUCAO\CORTE G2 NESTING'
     
     root = tk.Tk()
     root.title("Backup de Pastas")
