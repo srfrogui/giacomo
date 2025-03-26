@@ -336,14 +336,14 @@ def processo_completin_loopavel(pasta):
             log.write("Gerando Relatorio Pecas ...")
         log_message("Gerando Relatorio Pecas ...")
         gerar_relatorio_pecas(df, arquivo_xls)
-        arquivo_ripado(df, arquivo_xls)
-        
         
     if var_NPecas.get():
         with open(log_file_P, 'a') as log:
             log.write("Contando Pecas ...")
         log_message("Contando Pecas ...")
+        arquivo_ripado(df, arquivo_xls)
         criar_arquivo_com_pecas(df, arquivo_xls)
+        
         
     with open(log_file_P, 'a') as log:
         log.write(f'Processamento da {extrair_nome(pasta)}: concluido \n')
