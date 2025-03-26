@@ -234,7 +234,7 @@ from fpdf import FPDF
 def arquivo_ripado(df, arquivo, nome=None):
     
     # Filtrar as linhas que têm "TIRA_RIPADO" na coluna 'PEÇA DESCRIÇÃO'
-    df_tira_ripado = df[df['PEÇA DESCRIÇÃO'] == '_TIRA_RIPADO']
+    df_tira_ripado = df[df['PEÇA DESCRIÇÃO'].str.contains('_TIRA_RIPADO|45G', regex=True)]
 
     # Se não houver registros, não gera o PDF e imprime uma mensagem
     if df_tira_ripado.empty:
@@ -245,13 +245,16 @@ def arquivo_ripado(df, arquivo, nome=None):
     if nome is None:
         nome = obter_nome(pasta_arquivo)
     pasta_arquivo = os.path.join(pasta_arquivo, "VENDEDOR")
-    pdf_nome = f'cRelatorio Frente_{nome}.pdf'
+    pdf_nome = f'cRelatorio Ripa e 45_{nome}.pdf'
     
     # Função para calcular o valor da coluna "Roteiro"
     def calcular_roterio(row):
-        serra = 4
-        calculo = (row['PROF (Y)'] - serra) / 2
-        return f"Abrir em {calculo:.0f}mm"
+        if "_TIRA_RIPADO" in row['PEÇA DESCRIÇÃO']:
+            serra = 4
+            calculo = (row['PROF (Y)'] - serra) / 2
+            return f"Abrir em {calculo:.0f}mm"
+        else:
+            return ''  # Retorna string vazia se não for "_TIRA_RIPADO"
 
     # Criar a coluna "Roteiro"
     df_tira_ripado['Roteiro'] = df_tira_ripado.apply(calcular_roterio, axis=1)
@@ -262,14 +265,14 @@ def arquivo_ripado(df, arquivo, nome=None):
     pdf.add_page()
 
     # Definir título
-    pdf.set_font('Arial', 'B', 10)
-    pdf.cell(50, 3, txt=f"Relatório Tira Ripado - {nome}", ln=True, align='C')
+    pdf.set_font('Arial', 'B',10)
+    pdf.cell(100, 3, txt=f"Relatório Tira Ripado e 45G - {nome}", ln=True, align='C')
     pdf.ln()
     
     # Definir cabeçalho
     pdf.set_font('Arial', 'B', 8)
-    pdf.cell(30, 5, "PEÇA DESCRIÇÃO", border=1, align='C')
-    pdf.cell(50, 5, "CLIENTE", border=1, align='C')
+    pdf.cell(50, 5, "PEÇA DESCRIÇÃO", border=1, align='C')
+    pdf.cell(30, 5, "CLIENTE", border=1, align='C')
     pdf.cell(10, 5, "MAT", border=1, align='C')
     pdf.cell(10, 5, "ALT", border=1, align='C')
     pdf.cell(10, 5, "PROF", border=1, align='C')
@@ -288,8 +291,8 @@ def arquivo_ripado(df, arquivo, nome=None):
         pdf.set_fill_color(*cor_fundo)
 
         # Adiciona os dados da linha
-        pdf.cell(30, 6, str(row['PEÇA DESCRIÇÃO']), border=1, align='C', fill=True)
-        pdf.cell(50, 6, str(row['CLIENTE - DADOS DO CLIENTE']), border=1, align='C', fill=True)
+        pdf.cell(50, 6, str(row['PEÇA DESCRIÇÃO']), border=1, align='C', fill=True)
+        pdf.cell(30, 6, str(row['CLIENTE - DADOS DO CLIENTE']), border=1, align='C', fill=True)
         pdf.cell(10, 6, str(row['CÓDIGO MATERIAL']), border=1, align='C', fill=True)
         pdf.cell(10, 6, str(row['ALTURA (X)']), border=1, align='C', fill=True)
         pdf.cell(10, 6, str(row['PROF (Y)']), border=1, align='C', fill=True)
@@ -304,8 +307,8 @@ def arquivo_ripado(df, arquivo, nome=None):
         if pdf.get_y() > 275:  # Ajuste esse valor conforme necessário
             pdf.add_page()
             pdf.set_font('Arial', 'B', 7)
-            pdf.cell(30, 5, "PEÇA DESCRIÇÃO", border=1, align='C')
-            pdf.cell(50, 5, "CLIENTE", border=1, align='C')
+            pdf.cell(50, 5, "PEÇA DESCRIÇÃO", border=1, align='C')
+            pdf.cell(30, 5, "CLIENTE", border=1, align='C')
             pdf.cell(10, 5, "MAT", border=1, align='C')
             pdf.cell(10, 5, "ALT", border=1, align='C')
             pdf.cell(10, 5, "PROF", border=1, align='C')
@@ -367,9 +370,9 @@ def gerar_aciete(pasta_arquivo):
         return None
    
     def get_totTiraRipado(pasta_vendedor):
-        texto = ler_pdf(pasta_vendedor, "Listagem_Pecas.pdf")
+        texto = ler_pdf(pasta_vendedor, "cRelatorio Ripa e 45*.pdf")
         if texto:
-            ripado = re.findall(r'_TIRA RIPADO', texto, flags=re.IGNORECASE)
+            ripado = re.findall(r'_TIRA_RIPADO', texto, flags=re.IGNORECASE)
             # Encontrar as ocorrências de 'Abrir em Xmm', onde X é qualquer valor numérico
             valores = re.findall(r'Abrir em (\d+)mm', texto)
             
@@ -412,9 +415,9 @@ def gerar_aciete(pasta_arquivo):
         return None, None
 
     def get_totFrente45(pasta_vendedor):
-        texto = ler_pdf(pasta_vendedor, "Frentes.pdf")
+        texto = ler_pdf(pasta_vendedor, "cRelatorio Ripa e 45*.pdf")
         if texto:
-            usinagem = re.findall(r'(CORTE 45G|PERFIL 45G)', texto, flags=re.IGNORECASE)
+            usinagem = re.findall(r'(CORTE_45G|PERFIL_45G)', texto, flags=re.IGNORECASE)
             return len(usinagem)  # Retorna o número de ocorrências encontradas
         return None
     
@@ -554,7 +557,7 @@ def gerar_aciete(pasta_arquivo):
 
         # Verifique se os dados estão corretos antes de gravar
         if aceite_data:
-            caminho_json = os.path.join(pasta_arquivo, "VENDEDOR", f"aceite_OP-{opzinha}_{nome_projeto}.banana")
+            caminho_json = os.path.join(pasta_arquivo, "VENDEDOR", f"aceite_OP-{opzinha}_{nome_projeto}.vendas")
             
             # Verifique se a pasta de destino existe, caso contrário, crie
             pasta_destino = os.path.dirname(caminho_json)
