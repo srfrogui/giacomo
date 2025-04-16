@@ -242,7 +242,7 @@ def processo_dinheirinho(pasta):
     def process_pcp(pasta):
         clicar('./img/proce_money.png', ajusteY=-40)
         clicar('./img/proce_money.png')
-        ag.press(['down'] * 3 + ['right'] + ['down'] * 5 + ['right'] + ['down'] + ['enter'])
+        ag.press(['down'] * 3 + ['right'] + ['down'] * 5 + ['right'] + ['down'] * 3 + ['enter'])
         aguarde('./img/proce_pdf.png')
         clicar('./img/proce_pdf.png', ajusteX=200)
         ag.press('down')
