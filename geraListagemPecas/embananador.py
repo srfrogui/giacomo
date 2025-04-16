@@ -8,6 +8,7 @@ from reportlab.pdfbase import pdfmetrics
 from tkinter import Tk, messagebox
 from tkinter.filedialog import askopenfilename
 import os
+import random
 
 def formatar_valores(data):
     """ Remove o .0 dos valores flutuantes e formata os números inteiros """
@@ -22,11 +23,11 @@ def formatar_valores(data):
         formatted_data.append(new_row)
     return formatted_data
 
-def gerar_relatorio_pecas(df, arquivo_excel):   
+def gerar_relatorio_pecas(df, arquivo_excel, nome=None):   
     print("RP")
     # Substitui NaN por string vazia
     df = df.fillna('')
-    
+
     # Aplicar a lógica de exclusão de linhas
     mask_exclude = (
         ((df['PEÇA DESCRIÇÃO'].str.contains('_PAINEL_DUP_', na=False)) & (df['ESPESSURA'].isin([15, 18]))) |
@@ -67,9 +68,9 @@ def gerar_relatorio_pecas(df, arquivo_excel):
     
     # Salvar o relatório como PDF
     pasta_arquivo = os.path.dirname(arquivo_excel)  # Obtém o diretório onde o arquivo Excel está localizado
-    
+    if nome is None:
+        nome = obter_nome(pasta_arquivo)
     print('pasta_arquivo', pasta_arquivo)
-    nome = obter_nome(pasta_arquivo)
     pasta_arquivo = pasta_arquivo+"\VENDEDOR" 
     file_name = os.path.join(pasta_arquivo, f'Relatorio_Pecas_{nome}.pdf')
     print(file_name)
@@ -160,20 +161,24 @@ def gerar_relatorio_pecas(df, arquivo_excel):
     doc.build(elements)
 
 def obter_nome(pasta_arquivo):
-    # Extrair o nome da pasta
-    nome_pasta = os.path.basename(pasta_arquivo)  # Obtém o nome da pasta
-    print('Nome da pasta:', nome_pasta)
+    try:
+        # Extrair o nome da pasta
+        nome_pasta = os.path.basename(pasta_arquivo)  # Obtém o nome da pasta
+        print('Nome da pasta:', nome_pasta)
+        
+        # Verificar se o nome da pasta contém pelo menos 2 partes separadas por espaços
+        partes = nome_pasta.split(' ')
+        if len(partes) >= 2:
+            # Extrair as partes após o primeiro espaço
+            nome = ' '.join(partes[1:])  # Pega todas as partes após o primeiro espaço
+            print('Nome extraído:', nome)
+            return nome
+        else:
+            raise ValueError(f"O nome da pasta não contém o formato esperado. Pasta: {nome_pasta}")
+    except Exception as e:
+        print(f"Erro ao ler o arquivo PDF: {e}")
+        return ""
     
-    # Verificar se o nome da pasta contém pelo menos 2 partes separadas por espaços
-    partes = nome_pasta.split(' ')
-    if len(partes) >= 2:
-        # Extrair as partes após o primeiro espaço
-        nome = ' '.join(partes[1:])  # Pega todas as partes após o primeiro espaço
-        print('Nome extraído:', nome)
-        return nome
-    else:
-        raise ValueError(f"O nome da pasta não contém o formato esperado. Pasta: {nome_pasta}")
-
 def contar_pecas(df):
     # Substitui NaN por string vazia
     df = df.fillna('')
@@ -204,9 +209,7 @@ def criar_arquivo_com_pecas(df, arquivo):
     print(arquivo)
     
     pasta_arquivo = os.path.dirname(arquivo) 
-    # Obter o nome do projeto
-    nome_projeto = obter_nome(pasta_arquivo)
-    
+
     # Obter as quantidades de peças
     quantidade_pecas, quantidade_total = contar_pecas(df)
     
@@ -224,12 +227,106 @@ def criar_arquivo_com_pecas(df, arquivo):
         arquivo.write(conteudo)
     
     print(f"Arquivo {nome_arquivo} criado com sucesso.")
+
+import pandas as pd
+from fpdf import FPDF
+
+def arquivo_ripado(df, arquivo, nome=None):
     
+    # Filtrar as linhas que têm "TIRA_RIPADO" na coluna 'PEÇA DESCRIÇÃO'
+    df_tira_ripado = df[df['PEÇA DESCRIÇÃO'].str.contains('_TIRA_RIPADO|45G', regex=True)]
+
+    # Se não houver registros, não gera o PDF e imprime uma mensagem
+    if df_tira_ripado.empty:
+        print("Nenhum registro com '_TIRA_RIPADO' ou '45G' encontrado. Nenhum PDF gerado.")
+        return
+
+    pasta_arquivo = os.path.dirname(arquivo) 
+    if nome is None:
+        nome = obter_nome(pasta_arquivo)
+    pasta_arquivo = os.path.join(pasta_arquivo, "VENDEDOR")
+    pdf_nome = f'cRelatorio Ripa e 45_{nome}.pdf'
+    
+    # Função para calcular o valor da coluna "Roteiro"
+    def calcular_roterio(row):
+        if "_TIRA_RIPADO" in row['PEÇA DESCRIÇÃO']:
+            serra = 4
+            calculo = (row['PROF (Y)'] - serra) / 2
+            return f"Abrir em {calculo:.0f}mm"
+        else:
+            return ''  # Retorna string vazia se não for "_TIRA_RIPADO"
+
+    # Criar a coluna "Roteiro"
+    df_tira_ripado['Roteiro'] = df_tira_ripado.apply(calcular_roterio, axis=1)
+
+    # Criar o PDF com FPDF
+    pdf = FPDF()
+    pdf.set_auto_page_break(auto=True, margin=15)
+    pdf.add_page()
+
+    # Definir título
+    pdf.set_font('Arial', 'B',10)
+    pdf.cell(100, 3, txt=f"Relatório Tira Ripado e 45G - {nome}", ln=True, align='C')
+    pdf.ln()
+    
+    # Definir cabeçalho
+    pdf.set_font('Arial', 'B', 8)
+    pdf.cell(50, 5, "PEÇA DESCRIÇÃO", border=1, align='C')
+    pdf.cell(30, 5, "CLIENTE", border=1, align='C')
+    pdf.cell(10, 5, "MAT", border=1, align='C')
+    pdf.cell(10, 5, "ALT", border=1, align='C')
+    pdf.cell(10, 5, "PROF", border=1, align='C')
+    pdf.cell(50, 5, "DESCRIÇÃO DO MATERIAL", border=1, align='C')
+    pdf.cell(30, 5, "Roteiro", border=1, align='C')
+    pdf.ln()
+
+    # Definir as cores de fundo alternadas
+    fundo_cinza = [220, 220, 220]  # Cor cinza claro
+    fundo_branco = [255, 255, 255]  # Cor branca
+    cor_fundo = fundo_branco  # Começar com fundo branco
+    for index, row in df_tira_ripado.iterrows():
+        pdf.set_font('Arial', '', 8)
+
+        # Alterna a cor de fundo
+        pdf.set_fill_color(*cor_fundo)
+
+        # Adiciona os dados da linha
+        pdf.cell(50, 6, str(row['PEÇA DESCRIÇÃO']), border=1, align='C', fill=True)
+        pdf.cell(30, 6, str(row['CLIENTE - DADOS DO CLIENTE']), border=1, align='C', fill=True)
+        pdf.cell(10, 6, str(row['CÓDIGO MATERIAL']), border=1, align='C', fill=True)
+        pdf.cell(10, 6, str(row['ALTURA (X)']), border=1, align='C', fill=True)
+        pdf.cell(10, 6, str(row['PROF (Y)']), border=1, align='C', fill=True)
+        pdf.cell(50, 6, str(row['DESCRIÇÃO DO MATERIAL']), border=1, align='C', fill=True)
+        pdf.cell(30, 6, str(row['Roteiro']), border=1, align='C', fill=True)
+        pdf.ln()
+
+        # Alterna a cor de fundo para a próxima linha
+        cor_fundo = fundo_cinza if cor_fundo == fundo_branco else fundo_branco
+
+        # Se a página estiver cheia, criar uma nova
+        if pdf.get_y() > 275:  # Ajuste esse valor conforme necessário
+            pdf.add_page()
+            pdf.set_font('Arial', 'B', 7)
+            pdf.cell(50, 5, "PEÇA DESCRIÇÃO", border=1, align='C')
+            pdf.cell(30, 5, "CLIENTE", border=1, align='C')
+            pdf.cell(10, 5, "MAT", border=1, align='C')
+            pdf.cell(10, 5, "ALT", border=1, align='C')
+            pdf.cell(10, 5, "PROF", border=1, align='C')
+            pdf.cell(50, 5, "DESCRIÇÃO DO MATERIAL", border=1, align='C')
+            pdf.cell(30, 5, "Roteiro", border=1, align='C')
+            pdf.ln()
+            
+    # Salvar o PDF
+    pdf.output(pasta_arquivo+"/"+pdf_nome)
+
+    print(f"PDF gerado com sucesso: {pdf_nome}")
+
 ### funcao p importar  
 import pdfplumber
 import glob
 import json
 import re
+from collections import Counter
 
 def gerar_aciete(pasta_arquivo):
 
@@ -271,13 +368,24 @@ def gerar_aciete(pasta_arquivo):
                 return match.group(1)
         
         return None
-    
+   
     def get_totTiraRipado(pasta_vendedor):
-        texto = ler_pdf(pasta_vendedor, "Listagem_Pecas.pdf")
+        texto = ler_pdf(pasta_vendedor, "cRelatorio Ripa e 45*.pdf")
         if texto:
-            ripado = re.findall(r'_TIRA RIPADO', texto, flags=re.IGNORECASE)
-            return len(ripado)  # Retorna o número de ocorrências encontradas
-        return None
+            ripado = re.findall(r'_TIRA_RIPADO', texto, flags=re.IGNORECASE)
+            # Encontrar as ocorrências de 'Abrir em Xmm', onde X é qualquer valor numérico
+            valores = re.findall(r'Abrir em (\d+)mm', texto)
+            
+            # Contar as ocorrências dos valores encontrados
+            contagem_valores = Counter(valores)
+            
+            # Criar a string formatada para os valores
+            valores_formatados = " ".join([f"({contagem}){valor}mm" for valor, contagem in contagem_valores.items()])
+            
+            # Retorna o número de ocorrências de '_TIRA RIPADO' e os valores formatados
+            return len(ripado), valores_formatados
+        
+        return None, None
             
     def get_totPainelRouter(pasta_vendedor):
         texto = ler_pdf(pasta_vendedor, "Router.pdf")
@@ -304,12 +412,12 @@ def gerar_aciete(pasta_arquivo):
                 esp += "37mm"
             soma = len(engrosso) + len(afastador) * 2 
             return soma, esp  # Retorna o número de ocorrências e os valores encontrados de esp
-        return None
+        return None, None
 
     def get_totFrente45(pasta_vendedor):
-        texto = ler_pdf(pasta_vendedor, "Frentes.pdf")
+        texto = ler_pdf(pasta_vendedor, "cRelatorio Ripa e 45*.pdf")
         if texto:
-            usinagem = re.findall(r'(CORTE 45G|PERFIL 45G)', texto, flags=re.IGNORECASE)
+            usinagem = re.findall(r'(CORTE_45G|PERFIL_45G)', texto, flags=re.IGNORECASE)
             return len(usinagem)  # Retorna o número de ocorrências encontradas
         return None
     
@@ -320,7 +428,7 @@ def gerar_aciete(pasta_arquivo):
             regexData = [
                 { 'regex': r'(\d+)\s*(ML|M2|UN)\s*(ser_cor_lam_45g|lam_topo|ser_lam_lar|ser_lam_est)', 'field': 'fitagem' },
                 { 'regex': r'(\d+)\s*(ML|M2|UN)\s*furo_cnc_(20mm|10mm|3mm|15mm|1mm|5mm|8mm)', 'field': 'furosist' },
-                { 'regex': r'(\d+)\s*(ML|M2|UN)\s*(usi_rebaixo_4mm|usi_rasgo_7mm)', 'field': 'canal' },
+                { 'regex': r'(\d+)\s*(ML|M2|UN)\s*(usi_rebaixo_7|usi_rebaixo_4|usi_rasgo_7|usi_rasgo_4)', 'field': 'canal' },
                 { 'regex': r'(\d+)\s*(ML|M2|UN)\s*furo_cnc_35mm', 'field': 'furodob' },
                 { 'regex': r'(\d+)\s*(ML|M2|UN)\s*ser_corte_015', 'field': 'cortes' },
                 { 'regex': r'(\d+)\s*(ML|M2|UN)\s*servico_(instal_perfil|corte_barra)_015', 'field': 'cortePerfil' }
@@ -333,8 +441,15 @@ def gerar_aciete(pasta_arquivo):
                 'canal': 0,
                 'furodob': 0,
                 'cortes': 0,
-                'cortePerfil': 0
+                'cortePerfil': 0,
+                'tipoCanal': ''
             }
+
+            # Flag para identificar se "usi_rasgo" ou "usi_rebaixo" aparecem para 7MM e 4MM
+            rasgo7_found = False
+            canal7_found = False
+            rasgo4_found = False
+            canal4_found = False
 
             # Itera sobre cada regexData e faz a contagem para cada campo
             for item in regexData:
@@ -344,11 +459,41 @@ def gerar_aciete(pasta_arquivo):
                 for match in matches:
                     # A quantidade que deve ser somada é o primeiro grupo (o número encontrado)
                     result[item['field']] += int(match[0])  # match[0] é o número encontrado
+                    
+                    # Verifica se as condições para tipoCanal são atendidas
+                    if item['field'] == 'canal':
+                        if 'usi_rasgo_7' in match[2]:
+                            rasgo7_found = True
+                        if 'usi_rebaixo_7' in match[2]:
+                            canal7_found = True
+                        if 'usi_rasgo_4' in match[2]:
+                            rasgo4_found = True
+                        if 'usi_rebaixo_4' in match[2]:
+                            canal4_found = True
+
+            # Define o valor de tipoCanal com base nas condições
+            if rasgo7_found and canal7_found:
+                result['tipoCanal'] = 'CANAL 7MM E REBAIXO 7MM'
+            elif rasgo4_found and canal4_found:
+                result['tipoCanal'] = 'CANAL 4MM E REBAIXO 4MM'
+            elif rasgo7_found and canal4_found:
+                result['tipoCanal'] = 'CANAL 7MM E REBAIXO 4MM'
+            elif rasgo4_found and canal7_found:
+                result['tipoCanal'] = 'CANAL 4MM E REBAIXO 7MM'
+            elif rasgo7_found:
+                result['tipoCanal'] = 'CANAL 7MM'
+            elif canal7_found:
+                result['tipoCanal'] = 'REBAIXO 7MM'
+            elif rasgo4_found:
+                result['tipoCanal'] = 'CANAL 4MM'
+            elif canal4_found:
+                result['tipoCanal'] = 'REBAIXO 4MM'
+                        
             print(result)
             # Retorna o dicionário com as somas de cada campo
             return result
         
-        return None 
+        return result
     
     def get_ttpecas(pasta_vendedor):
             # Caminho completo para o arquivo de texto
@@ -382,9 +527,9 @@ def gerar_aciete(pasta_arquivo):
         nome_projeto = obter_nome(pasta_arquivo)  # Suponha que essa função está retornando um nome válido
         
         aceite_data = {}
-
+        
         op = get_op(pasta_arquivo)
-        ripado = get_totTiraRipado(pasta_vendedor)
+        ripado, abrirem = get_totTiraRipado(pasta_vendedor)
         router = get_totPainelRouter(pasta_vendedor)
         engrosso, esp = get_totEngrosso(pasta_vendedor)
         usinagem = get_totFrente45(pasta_vendedor)
@@ -393,11 +538,13 @@ def gerar_aciete(pasta_arquivo):
 
         opzinha = str(op) if op is not None else ""
         
-        aceite_data["op"] = opzinha
-        aceite_data["ripado"] = str(ripado) if ripado is not None else ""
-        aceite_data["router"] = str(router) if router is not None else ""
-        aceite_data["engrosso"] = str(engrosso) if engrosso is not None else ""
-        aceite_data["usinagem"] = str(usinagem) if usinagem is not None else ""
+        aceite_data["projeto"] = str(nome_projeto) if nome_projeto is not None else ""
+        aceite_data["opField"] = f"OP {opzinha}"
+        aceite_data["ripado"] = str(ripado) if ripado is not None else "0"
+        aceite_data["abrirem"] = str(abrirem) if abrirem is not None else ""
+        aceite_data["router"] = str(router) if router is not None else "0"
+        aceite_data["engrosso"] = str(engrosso) if engrosso is not None else "0"
+        aceite_data["usinagem"] = str(usinagem) if usinagem is not None else "0"
         aceite_data["fitagem"] = str(result.get("fitagem", ""))
         aceite_data["espengrosso"] = str(esp) if esp is not None else ""
         aceite_data["furosist"] = str(result.get("furosist", ""))
@@ -405,11 +552,12 @@ def gerar_aciete(pasta_arquivo):
         aceite_data["furodob"] = str(result.get("furodob", ""))
         aceite_data["cortes"] = str(result.get("cortes", ""))
         aceite_data["corteperfil"] = str(result.get("cortePerfil", ""))
+        aceite_data["tipoCanal"] = str(result.get("tipoCanal", ""))
         aceite_data["ttpecas"] = str(ttpecas) if ttpecas is not None else ""
 
         # Verifique se os dados estão corretos antes de gravar
         if aceite_data:
-            caminho_json = os.path.join(pasta_arquivo, "VENDEDOR", f"aceite_OP-{opzinha}_{nome_projeto}.json")
+            caminho_json = os.path.join(pasta_arquivo, "VENDEDOR", f"aceite_OP-{opzinha}_{nome_projeto}.vendas")
             
             # Verifique se a pasta de destino existe, caso contrário, crie
             pasta_destino = os.path.dirname(caminho_json)
@@ -461,8 +609,15 @@ def main(arquivo=None):
             #print("1. Relatório de Peças")
             opcao = "1"  # input("Digite o número da opção: ")
             if opcao == '1':
-                gerar_relatorio_pecas(df, arquivo)
-                criar_arquivo_com_pecas(df, arquivo) #gera arquivo com a quantide das pecas acabadas (sem contar dupladas como 2 e sim como uma e mimimmi..)do projeto
+                diretorio = os.path.dirname(arquivo)
+                pasta_vendedor = os.path.join(diretorio, 'VENDEDOR')
+                if not os.path.exists(pasta_vendedor):
+                    os.makedirs(pasta_vendedor)
+                
+                nome = obter_nome(diretorio)
+                gerar_relatorio_pecas(df, arquivo, nome)
+                criar_arquivo_com_pecas(df, arquivo)
+                arquivo_ripado(df, arquivo, nome)
             else:
                 print("Opção inválida.")
         except Exception as e:
