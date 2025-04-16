@@ -420,6 +420,7 @@ def imprimir_loop(caminho):
             ag.press('enter') #aplica o caminho
             time.sleep(1)
             clicar('./img/salvarr.png')
+            time.sleep(1)
             ag.hotkey('alt', 'f4')
             time.sleep(1)
 
@@ -433,7 +434,7 @@ def gerar_gvision(pasta):
     clicar('./img/exit.png', -100)
     aguarde('./img/cortepromob.png')
     ag.hotkey('alt', 'f4')
-    shutil.copy(f'X:\\CORTE PROMOB\\{nome}.fdt', pasta)
+    shutil.copy(f'Z:\PRODUCAO\CORTE PROMOB\{nome}.fdt', pasta)
     print(f'{nome}.fdt ---> {pasta}')
     
 # Função para abrir a produção
