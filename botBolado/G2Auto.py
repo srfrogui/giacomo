@@ -530,7 +530,7 @@ def gerar_relatorio_pdf(corte, vendedor, pasta):
     table_data.append(["TOTAL:", str(total_nesting), str(total_gplan)])
 
     # Criar a tabela de Nesting/GPlan
-    table = Table(table_data, colWidths=[200, 100, 100], rowHeights=13)
+    table = Table(table_data, colWidths=[300, 50, 50], rowHeights=13)
 
     # Estilizando a tabela
     table.setStyle(TableStyle([ 

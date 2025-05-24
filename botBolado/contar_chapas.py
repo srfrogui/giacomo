@@ -13,8 +13,10 @@ from tkinter.filedialog import askdirectory
 
 
 # Listas de palavras para remoção
-palavras_para_remover = ["GREENPLAC", "DURATEX", "ARAUCO", "GUARARAPES", "DESIGN", "VELLUTO", "ESSENCIAL"]
-palavras_para_remover2 = ["PRISMA", "MADEIRAS"]
+palavras_para_removern = ["GREENPLAC", "DURATEX", "ARAUCO", "GUARARAPES", "ESSENCIAL", "WOOD", "MULTIMARCAS"]
+palavras_para_remover2n = ["MADEIRAS"]
+palavras_para_remover = []
+palavras_para_remover2 = []
 
 # Função para extrair dados
 def extrair_gplan_pdf(pasta_vendedor):
@@ -128,91 +130,75 @@ def extrair_nesting_pdf(pasta, nc_files_data=None):
     return dict(contador)
 
 def gerar_pdf_com_tabela(pasta_vendedor, pasta):
-    # Extrair os dados usando as duas funções
     try:
         resultado_nesting = extrair_nesting_pdf(pasta)
     except Exception as e:
         print('deu um erro ae:', e)  
-        
+
     try:
         resultado_gplan = extrair_gplan_pdf(pasta_vendedor)
     except Exception as e:
         print('deu um erro ae:', e)  
 
-    # Organizar as chaves em ordem alfabética e garantir que o 'total' fique no final
     resultado_nesting = {k: resultado_nesting[k] for k in sorted(resultado_nesting) if k != 'total'}
     resultado_gplan = {k: resultado_gplan[k] for k in sorted(resultado_gplan) if k != 'total'}
 
-    # Calcular os totais para cada dicionário
     total_nesting = sum(resultado_nesting.values())
     total_gplan = sum(resultado_gplan.values())
 
-    # Preparar os dados para gerar a tabela no formato de texto
     todas_chaves = sorted(set(resultado_nesting.keys()).union(set(resultado_gplan.keys())))
 
-    # Gerar o PDF
     caminho_arquivo_pdf = os.path.join(pasta_vendedor, "Contagem de Chapa.pdf")
     c = canvas.Canvas(caminho_arquivo_pdf, pagesize=letter)
     width, height = letter
 
-    # Título
     c.setFont("Helvetica-Bold", 14)
     c.drawString(30, height - 40, "Contagem de Chapas Nesting/GPlan:")
 
-    # Cabeçalho da tabela
     c.setFont("Helvetica-Bold", 10)
-    c.drawString(30, height - 70, "Produto")
-    c.drawString(350, height - 70, "NESTING")
-    c.drawString(450, height - 70, "GPLAN")
 
-    # Linha de separação
+    # Novas posições ajustadas
+    pos_produto = 30
+    pos_nesting = 400  # mais próximo do final
+    pos_gplan = 460    # bem perto do nesting
+
+    c.drawString(pos_produto, height - 70, "Produto")
+    c.drawString(pos_nesting, height - 70, "NEST.")
+    c.drawString(pos_gplan, height - 70, "GPL.")
+
     c.line(30, height - 75, width - 30, height - 75)
 
     y_position = height - 90
 
-    # Adicionando os dados das chapas com linha alternada
     for idx, chave in enumerate(todas_chaves):
         quantidade_nesting = resultado_nesting.get(chave, 0)
         quantidade_gplan = resultado_gplan.get(chave, 0)
 
         if quantidade_nesting == quantidade_gplan:
-            c.setFillColor(colors.white)  # Cor branca
+            c.setFillColor(colors.white)
         else:
-            c.setFillColor(colors.lightpink)  # Cor cinza claro
+            c.setFillColor(colors.lightpink)
 
-        # Desenhar a linha de fundo
         c.rect(30, y_position , width - 60, 15, fill=1)
 
-        # Definir a cor do texto
         c.setFont("Helvetica", 10)
-        c.setFillColor(colors.black)  
+        c.setFillColor(colors.black)
 
-        # Adicionar espaços antes dos números (5 espaços)
-        espacos = "     "
-
-        # Aumentar o espaçamento do número menor
-        espacos_adicionais_nesting = "            " if quantidade_nesting > quantidade_gplan else ""
-        espacos_adicionais_gplan = "            " if quantidade_gplan > quantidade_nesting else ""
-
-        # Adicionando os dados da linha
-        c.drawString(35, y_position + 3, chave)
-        c.drawString(355, y_position + 3, espacos + espacos_adicionais_nesting + str(quantidade_nesting))
-        c.drawString(455, y_position + 3, espacos + espacos_adicionais_gplan + str(quantidade_gplan))
+        c.drawString(pos_produto + 5, y_position + 3, chave)
+        c.drawRightString(pos_nesting + 20, y_position + 3, str(quantidade_nesting))
+        c.drawRightString(pos_gplan + 20, y_position + 3, str(quantidade_gplan))
 
         y_position -= 15
 
-    # Adicionar o total ao final
     c.setFont("Helvetica-Bold", 10)
     c.setFillColor(colors.black)
-    c.drawString(35, y_position, "TOTAL:")
-    c.drawString(355, y_position, espacos + str(total_nesting))
-    c.drawString(455, y_position, espacos + str(total_gplan))
-    
-    # Salvar o PDF
-    c.save()
+    c.drawString(pos_produto + 5, y_position, "TOTAL:")
+    c.drawRightString(pos_nesting + 20, y_position, str(total_nesting))
+    c.drawRightString(pos_gplan + 20, y_position, str(total_gplan))
 
-    # Retornar o caminho do arquivo gerado
+    c.save()
     return caminho_arquivo_pdf
+
 
 # Exemplo de uso
 # pasta_vendedor = "./PROJJE_IKAD CCB SALAS ADM\\VENDEDOR"

@@ -220,7 +220,7 @@ def criar_arquivo_com_pecas(df, arquivo):
     
     # Criar o conteúdo do arquivo
     # conteudo = f"Quantidade de peças do projeto {nome_projeto} tem {quantidade_pecas} peças acabadas e {quantidade_total} peças de corte."
-    conteudo = f"TOTAL PECAS: __{quantidade_pecas}__"
+    conteudo = f"TOTAL PECAS: __{quantidade_pecas}__                                                                                                                                                                                                      $ignorar:{quantidade_total}"
     
     # Escrever no arquivo
     with open(nome_arquivo, 'w') as arquivo:
@@ -273,7 +273,7 @@ def arquivo_ripado(df, arquivo, nome=None):
     pdf.set_font('Arial', 'B', 8)
     pdf.cell(50, 5, "PEÇA DESCRIÇÃO", border=1, align='C')
     pdf.cell(30, 5, "CLIENTE", border=1, align='C')
-    pdf.cell(10, 5, "MAT", border=1, align='C')
+    pdf.cell(10, 5, "PAI", border=1, align='C')
     pdf.cell(10, 5, "ALT", border=1, align='C')
     pdf.cell(10, 5, "PROF", border=1, align='C')
     pdf.cell(50, 5, "DESCRIÇÃO DO MATERIAL", border=1, align='C')
@@ -293,7 +293,7 @@ def arquivo_ripado(df, arquivo, nome=None):
         # Adiciona os dados da linha
         pdf.cell(50, 6, str(row['PEÇA DESCRIÇÃO']), border=1, align='C', fill=True)
         pdf.cell(30, 6, str(row['CLIENTE - DADOS DO CLIENTE']), border=1, align='C', fill=True)
-        pdf.cell(10, 6, str(row['CÓDIGO MATERIAL']), border=1, align='C', fill=True)
+        pdf.cell(10, 6, str(row['ID MÓDULO']), border=1, align='C', fill=True)
         pdf.cell(10, 6, str(row['ALTURA (X)']), border=1, align='C', fill=True)
         pdf.cell(10, 6, str(row['PROF (Y)']), border=1, align='C', fill=True)
         pdf.cell(50, 6, str(row['DESCRIÇÃO DO MATERIAL']), border=1, align='C', fill=True)
