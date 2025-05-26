@@ -111,7 +111,23 @@ def backup_folder(folder, nome_pasta, backup_path, categoria):
     log_message("Backup Completo!")
     root.after(2000, close_window)  # Aguarda 2 segundos e fecha a janela
 
-def start_backup(folder, nome_pasta, backup_path, furacao_path, img_path, etiqueta_path, categorias, nesting_path):
+def aceitar_vendedor(folder, aceite_vendas):
+    folder_vendedor = os.path.join(folder, "VENDEDOR")
+    # Lista todos os arquivos da pasta
+    for nome_arquivo in os.listdir(folder_vendedor):
+        if nome_arquivo.endswith(".vendas"):
+            caminho_origem = os.path.join(folder_vendedor, nome_arquivo)
+            caminho_destino = os.path.join(aceite_vendas, nome_arquivo)
+
+            log_message("Copiando .vendas...")
+            shutil.copy2(caminho_origem, caminho_destino)
+            return True
+
+    log_message("O arquivo .vendas não foi encontrado.")
+    # return False
+    return True
+
+def start_backup(folder, nome_pasta, backup_path, furacao_path, img_path, etiqueta_path, categorias, nesting_path, aceite_vendas):
     categoria = get_backup_category(nome_pasta, categorias)
     log_message(f"Nome da pasta: {nome_pasta}")
     log_message(f"Iniciando Backup... {categoria}")
@@ -120,7 +136,8 @@ def start_backup(folder, nome_pasta, backup_path, furacao_path, img_path, etique
     
     if prepare_destination_giben(nome_pasta, folder, furacao_path):
         if prepare_destination_img(nome_pasta, img_path, etiqueta_path):
-            backup_folder(folder, nome_pasta, backup_path, categoria)
+            if aceitar_vendedor(folder, aceite_vendas):
+                backup_folder(folder, nome_pasta, backup_path, categoria)
 
 def close_window():
     root.quit()  # Fecha a janela Tkinter
@@ -135,6 +152,7 @@ def main():
     furacao_path = r'Z:\PRODUCAO\FURAÇÃO PROMOB'
     etiqueta_path = r'Z:\PRODUCAO\ETIQUETA GVISION GPLAN PROMOB'
     nesting_path= r'Z:\PRODUCAO\CORTE G2 NESTING'
+    aceite_vendas= r'Z:\VENDAS\ACEITE-VENDAS'
     
     root = tk.Tk()
     root.title("Backup de Pastas")
@@ -166,7 +184,7 @@ def main():
 
     root.protocol("WM_DELETE_WINDOW", close_window)
 
-    start_backup(folder, nome_pasta, backup_path, furacao_path, img_path, etiqueta_path, categorias, nesting_path)
+    start_backup(folder, nome_pasta, backup_path, furacao_path, img_path, etiqueta_path, categorias, nesting_path, aceite_vendas)
 
     root.mainloop()
 
