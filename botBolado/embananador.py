@@ -234,11 +234,11 @@ from fpdf import FPDF
 def arquivo_ripado(df, arquivo, nome=None):
     
     # Filtrar as linhas que têm "TIRA_RIPADO" na coluna 'PEÇA DESCRIÇÃO'
-    df_tira_ripado = df[df['PEÇA DESCRIÇÃO'].str.contains('_TIRA_RIPADO|45G', regex=True)]
+    df_tira_ripado = df[df['PEÇA DESCRIÇÃO'].str.contains('_TIRA_RIPADO|45G|PALHA', regex=True)]
 
     # Se não houver registros, não gera o PDF e imprime uma mensagem
     if df_tira_ripado.empty:
-        print("Nenhum registro com '_TIRA_RIPADO' ou '45G' encontrado. Nenhum PDF gerado.")
+        print("Nenhum registro com '_TIRA_RIPADO' ou '45G' ou PALHA encontrado. Nenhum PDF gerado.")
         return
 
     pasta_arquivo = os.path.dirname(arquivo) 
@@ -266,7 +266,7 @@ def arquivo_ripado(df, arquivo, nome=None):
 
     # Definir título
     pdf.set_font('Arial', 'B',10)
-    pdf.cell(100, 3, txt=f"Relatório Tira Ripado e 45G - {nome}", ln=True, align='C')
+    pdf.cell(100, 3, txt=f"Relatório Tira Ripado e 45G e PALHA - {nome}", ln=True, align='C')
     pdf.ln()
     
     # Definir cabeçalho
@@ -292,11 +292,11 @@ def arquivo_ripado(df, arquivo, nome=None):
 
         # Adiciona os dados da linha
         pdf.cell(50, 6, str(row['PEÇA DESCRIÇÃO']), border=1, align='C', fill=True)
-        pdf.cell(30, 6, str(row['CLIENTE - DADOS DO CLIENTE']), border=1, align='C', fill=True)
+        pdf.cell(30, 6, str(row['CLIENTE - DADOS DO CLIENTE'])[:20], border=1, align='C', fill=True)
         pdf.cell(10, 6, str(row['ID MÓDULO']), border=1, align='C', fill=True)
         pdf.cell(10, 6, str(row['ALTURA (X)']), border=1, align='C', fill=True)
         pdf.cell(10, 6, str(row['PROF (Y)']), border=1, align='C', fill=True)
-        pdf.cell(50, 6, str(row['DESCRIÇÃO DO MATERIAL']), border=1, align='C', fill=True)
+        pdf.cell(50, 6, str(row['DESCRIÇÃO DO MATERIAL'])[-29:], border=1, align='C', fill=True)
         pdf.cell(30, 6, str(row['Roteiro']), border=1, align='C', fill=True)
         pdf.ln()
 
@@ -308,11 +308,11 @@ def arquivo_ripado(df, arquivo, nome=None):
             pdf.add_page()
             pdf.set_font('Arial', 'B', 7)
             pdf.cell(50, 5, "PEÇA DESCRIÇÃO", border=1, align='C')
-            pdf.cell(30, 5, "CLIENTE", border=1, align='C')
+            pdf.cell(30, 5, str(row['CLIENTE - DADOS DO CLIENTE'])[:20], border=1, align='C')
             pdf.cell(10, 5, "MAT", border=1, align='C')
             pdf.cell(10, 5, "ALT", border=1, align='C')
             pdf.cell(10, 5, "PROF", border=1, align='C')
-            pdf.cell(50, 5, "DESCRIÇÃO DO MATERIAL", border=1, align='C')
+            pdf.cell(50, 6, str(row['DESCRIÇÃO DO MATERIAL'])[-29:], border=1, align='C', fill=True)
             pdf.cell(30, 5, "Roteiro", border=1, align='C')
             pdf.ln()
             

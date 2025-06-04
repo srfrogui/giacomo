@@ -2,7 +2,7 @@ Windows Registry Editor Version 5.00
 
 [HKEY_CLASSES_ROOT\Directory\shell\EmbananarPasta]
 @="Embananar Pasta"
-"Icon"="\"C:\\Users\\giaco\\OneDrive\\Desktop\\bot\\arrastaBanana\\banana.ico\""
+"Icon"="\"C:\\Users\\giaco\\OneDrive\\Desktop\\bot\\giacomoBots\\arrastaBanana\\banana.ico\""
 
 [HKEY_CLASSES_ROOT\Directory\shell\EmbananarPasta\command]
-@="\"C:\\Users\\giaco\\OneDrive\\Desktop\\bot\\arrastaBanana\\build\\ArrastaBanana-Adaptado-v1\\ArrastaBanana-Adaptado-v1.exe\" \"%1\""
+@="\"C:\\Users\\giaco\\OneDrive\\Desktop\\bot\\giacomoBots\\arrastaBanana\\build\\ArrastaBanana-Adaptado-v1\\arrasta_banana.exe\" \"%1\""
