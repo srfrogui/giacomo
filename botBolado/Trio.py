@@ -22,6 +22,7 @@ from tkinterdnd2 import TkinterDnD, DND_FILES
 from tkcalendar import DateEntry
 import sys
 from PIL import Image, ImageTk
+import pyautogui as ag
 
 print("Rodando sem try exept pra ver as bomba dos erro")
 print("Diretório atual:", os.getcwd())  # Mostra o diretório atual
@@ -569,7 +570,8 @@ def main():
                 # Inicia o segundo processo após o primeiro terminar
                 log_message(f"Processo Gplan Iniciado...{pasta}")
                 if var_novo_projeto.get():
-                    clicar("./img/abrir_gplan.png")
+                    #clicar("./img/abrir_gplan.png")
+                    ag.hotkey('win', '6')
                     time.sleep(3)
                     if procurar("./img/val_chave.png"):
                         mostrar_mensagem_erro("ENFIA A CHAVE!")
@@ -585,8 +587,9 @@ def main():
                     
                 processar_pastas_gplan(pasta)
                 
-                clicar("./img/abrir_gplan.png")     
-                  
+                #clicar("./img/abrir_gplan.png")     
+                ag.hotkey('win', '6')
+                time.sleep(0.2)
                 # except ValueError as e:  # Captura especificamente o erro lançado na função clicar
                 #     with open(log_file_G, 'a') as log:
                 #         log.write(f'Erro ao processar pasta {pasta}: {e}\n')
@@ -604,7 +607,8 @@ def main():
                     log_message(f"Processo Nesting Iniciado...{pasta}")
                     # if not manda_pra_frente('wsnesting'):
 
-                    clicar("./img/abrir_nesting.png")
+                    #clicar("./img/abrir_nesting.png")
+                    ag.hotkey('win', '7')
                     time.sleep(3)
                     aguarde('./img/btt_carregar_arq.png', timeout=15)
             
@@ -615,7 +619,9 @@ def main():
                     # nesting.wait()
                 processo_nesting(pasta)
                 
-                clicar("./img/abrir_nesting.png")
+                #clicar("./img/abrir_nesting.png")
+                ag.hotkey('win', '7')
+                time.sleep(0.2)
                 # except ValueError as e:  # Captura especificamente o erro lançado na função clicar
                 #     with open(log_file_G, 'a') as log:
                 #         log.write(f'Erro ao processar pasta {pasta}: {e}\n')

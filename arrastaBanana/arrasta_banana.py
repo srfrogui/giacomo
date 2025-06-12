@@ -6,8 +6,12 @@ import sys
 
 def load_categories(filename):
     categorias = {}
-    if os.path.exists(filename):
-        with open(filename, 'r') as file:
+    
+    base_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
+    full_path = os.path.join(base_dir, filename)    
+    
+    if os.path.exists(full_path):
+        with open(full_path, 'r', encoding='utf-8') as file:
             for line in file:
                 if line.startswith('#'):
                     continue
