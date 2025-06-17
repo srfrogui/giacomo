@@ -288,12 +288,20 @@ def processo_completin(pasta):
     with open(log_file_P, 'a') as log:
         log.write(f'Processando pasta: {pasta}\n')
     log_message(f'Processando pasta: {pasta}\n')
-    
-    if var_dinheirinho.get():
+    router = False
+    if var_dinheirinho.get() or var_fechado.get() or var_aberto.get() or var_vidro.get():
         with open(log_file_P, 'a') as log:
             log.write("Iniciando Relatorios...")
         log_message("Iniciando Relatorios...")
-        router = processo_dinheirinho(pasta)
+        fechado = False
+        aberto = False
+        vidro = False
+        resto = False
+        if var_fechado.get(): fechado = True
+        if var_aberto.get(): aberto = True
+        if var_vidro.get(): vidro = True
+        if var_dinheirinho.get(): resto = True
+        router = processo_dinheirinho(pasta, fechado, aberto, vidro, resto)
     if var_gplan.get():
         with open(log_file_P, 'a') as log:
             log.write("Gerando Gplan...")
@@ -398,10 +406,6 @@ def processo_nesting(pasta):
 
 
 
-
-
-
-
 #================================================================================================================================================================================================
 
 
@@ -502,7 +506,7 @@ def main():
         
         if pastas:
             pasta = pastas[0]
-            if var_gplan.get() or var_dinheirinho.get():
+            if var_gplan.get() or var_dinheirinho.get() or var_fechado.get() or var_aberto.get() or var_vidro.get():
                 # try:
                 processo_completin(pasta)
                 # pro1 = threading.Thread(target=processo_completin, args=(pasta,))
@@ -586,7 +590,7 @@ def main():
                 
                     
                 processar_pastas_gplan(pasta)
-                
+                time.sleep(0.2)
                 #clicar("./img/abrir_gplan.png")     
                 ag.hotkey('win', '6')
                 time.sleep(0.2)
@@ -618,7 +622,8 @@ def main():
                     # nest.start()
                     # nesting.wait()
                 processo_nesting(pasta)
-                
+
+                time.sleep(0.2)
                 #clicar("./img/abrir_nesting.png")
                 ag.hotkey('win', '7')
                 time.sleep(0.2)
@@ -697,10 +702,15 @@ def main():
     pastas=[]
 
     # Variáveis para checkboxes (definidas após criar a janela)
-    global var_gplan, var_dinheirinho, var_producao, var_RPecas, var_NPecas
+    global var_gplan, var_dinheirinho, var_producao, var_RPecas, var_NPecas, var_fechado, var_aberto, var_vidro
     var_selecionar_todos_promob = IntVar(value=0)
     var_gplan = IntVar(value=1)
     var_dinheirinho = IntVar(value=1)
+
+    var_fechado = IntVar(value=1)
+    var_aberto = IntVar(value=1)
+    var_vidro = IntVar(value=0)
+
     var_producao = IntVar(value=1)
     var_RPecas = IntVar(value=0)
     var_NPecas = IntVar(value=1)
@@ -748,72 +758,73 @@ def main():
     checkbox_frame = tk.Frame(janela)
     checkbox_frame.pack(pady=2)
     
-    tk.Label(checkbox_frame, text="Promob process").grid(row=0, column=0, sticky='w')
+    tk.Label(checkbox_frame, text="Promob process").grid(row=1, column=0, sticky='w')
     checkbutton_selecionar_todos_promob = tk.Checkbutton(
         checkbox_frame, text="Selecionar Todes", variable=var_selecionar_todos_promob,
         command=selecionar_todos_promob  # Conecta a função
     )
-    checkbutton_selecionar_todos_promob.grid(row=0, column=1, sticky='w')
+    checkbutton_selecionar_todos_promob.grid(row=1, column=1, sticky='w')
 
-    checkbutton_dinheirinho = tk.Checkbutton(checkbox_frame, text="Processo Dinheirinho", variable=var_dinheirinho)
-    checkbutton_dinheirinho.grid(row=0, column=3, sticky='w')
+    tk.Checkbutton(checkbox_frame, text="Pedido Fabrica", variable=var_fechado).grid(row=0, column=1, sticky='w', padx=5)
+    tk.Checkbutton(checkbox_frame, text="Pedido Fabrica ABERTO", variable=var_aberto).grid(row=0, column=2, sticky='w', padx=5)
+    tk.Checkbutton(checkbox_frame, text="Pedido VIDROS", variable=var_vidro).grid(row=0, column=3, sticky='w', padx=5)
 
-    checkbutton_gplan = tk.Checkbutton(checkbox_frame, text="Processo GPlan", variable=var_gplan)
-    checkbutton_gplan.grid(row=1, column=0, sticky='w')
+    checkbutton_dinheirinho = tk.Checkbutton(checkbox_frame, text="Processo Dinheirinho", variable=var_dinheirinho).grid(row=1, column=3, sticky='w')
+    checkbutton_gplan = tk.Checkbutton(checkbox_frame, text="Processo GPlan", variable=var_gplan).grid(row=2, column=0, sticky='w')
     
-    tk.Checkbutton(checkbox_frame, text="Projeto Produção", variable=var_producao).grid(row=1, column=1, sticky='w')
-    tk.Checkbutton(checkbox_frame, text="Relatorio Pecas", variable=var_RPecas).grid(row=1, column=2, sticky='w')
-    tk.Checkbutton(checkbox_frame, text="Contar Pecas", variable=var_NPecas).grid(row=1, column=3, sticky='w')
+    tk.Checkbutton(checkbox_frame, text="Projeto Produção", variable=var_producao).grid(row=2, column=1, sticky='w')
+    tk.Checkbutton(checkbox_frame, text="Relatorio Pecas", variable=var_RPecas).grid(row=2, column=2, sticky='w')
+    tk.Checkbutton(checkbox_frame, text="Contar Pecas", variable=var_NPecas).grid(row=2, column=3, sticky='w')
     
-    tk.Label(checkbox_frame, text="Chrome process").grid(row=2, column=0, sticky='w')
-    tk.Checkbutton(checkbox_frame, text="Moveu", variable=var_moveu, command=toggle_chrome_inputs).grid(row=2, column=1, sticky='w')
+    tk.Label(checkbox_frame, text="Chrome process").grid(row=3, column=0, sticky='w')
+    tk.Checkbutton(checkbox_frame, text="Moveu", variable=var_moveu, command=toggle_chrome_inputs).grid(row=3, column=1, sticky='w')
     # Campo de texto e data para o processo "Chrome"
     text_label = tk.Label(checkbox_frame, text="Vendedor:")
-    text_label.grid(row=2, column=2, sticky='w', padx=1)
+    text_label.grid(row=3, column=2, sticky='w', padx=1)
     entry_vendedor = tk.Entry(checkbox_frame, state='normal')
-    entry_vendedor.grid(row=2, column=3, sticky='w', padx=1)
+    entry_vendedor.grid(row=3, column=3, sticky='w', padx=1)
     
     text_label = tk.Label(checkbox_frame, text="Cliente:")
-    text_label.grid(row=3, column=0, sticky='w', padx=1)
+    text_label.grid(row=4, column=0, sticky='w', padx=1)
     entry_cliente = tk.Entry(checkbox_frame, state='normal')
-    entry_cliente.grid(row=3, column=1, sticky='w', padx=1)
+    entry_cliente.grid(row=4, column=1, sticky='w', padx=1)
 
     date_label = tk.Label(checkbox_frame, text="Prazo:")
-    date_label.grid(row=3, column=2, sticky='w', padx=10)
+    date_label.grid(row=4, column=2, sticky='w', padx=10)
     date_prazo = DateEntry(checkbox_frame, width=17, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/MM/yyyy', state='normal')
-    date_prazo.grid(row=3, column=3, sticky='w', padx=1)
+    date_prazo.grid(row=4, column=3, sticky='w', padx=1)
     
     # Carregar a imagem
     imagem = carregar_imagem("./img/careca.png")
     # Criar o Label com a imagem e fixá-lo em uma posição específica usando .place()
-    label_imagem = tk.Label(checkbox_frame, image=imagem).place(x=380, y=140)
+    label_imagem = tk.Label(checkbox_frame, image=imagem).place(x=330, y=140)
 
-    tk.Label(checkbox_frame, text="GPlan process").grid(row=4, column=0, sticky='w')
-    tk.Checkbutton(checkbox_frame, text="Selecionar Todes", variable=var_selecionar_todos_gplan, command=selecionar_todos_gplan).grid(row=4, column=1, sticky='w')
-    tk.Checkbutton(checkbox_frame, text="Novo Projeto", variable=var_novo_projeto).grid(row=5, column=0, sticky='w')
-    tk.Checkbutton(checkbox_frame, text="Importa", variable=var_importa).grid(row=5, column=1, sticky='w')
-    tk.Checkbutton(checkbox_frame, text="Importar Projeto", variable=var_importar_projeto).grid(row=5, column=2, sticky='w')
-    tk.Checkbutton(checkbox_frame, text="Abrir Parâmetro", variable=var_abrir_parametro).grid(row=5, column=3, sticky='w')
-    tk.Checkbutton(checkbox_frame, text="Configurar Otimização", variable=var_configurar_otimizacao).grid(row=6, column=0, sticky='w')
-    tk.Checkbutton(checkbox_frame, text="Imprimir Loop", variable=var_imprimir_loop).grid(row=6, column=1, sticky='w')
-    tk.Checkbutton(checkbox_frame, text="Gerar GVision", variable=var_gerar_gvision).grid(row=6, column=2, sticky='w')
-    tk.Checkbutton(checkbox_frame, text="Abrir Produção", variable=var_abrir_producao).grid(row=6, column=3, sticky='w')
+    tk.Label(checkbox_frame, text="GPlan process").grid(row=5, column=0, sticky='w')
+    tk.Checkbutton(checkbox_frame, text="Selecionar Todes", variable=var_selecionar_todos_gplan, command=selecionar_todos_gplan).grid(row=5, column=1, sticky='w')
+    tk.Checkbutton(checkbox_frame, text="Novo Projeto", variable=var_novo_projeto).grid(row=6, column=0, sticky='w')
+    tk.Checkbutton(checkbox_frame, text="Importa", variable=var_importa).grid(row=6, column=1, sticky='w')
+    tk.Checkbutton(checkbox_frame, text="Importar Projeto", variable=var_importar_projeto).grid(row=6, column=2, sticky='w')
+    tk.Checkbutton(checkbox_frame, text="Abrir Parâmetro", variable=var_abrir_parametro).grid(row=6, column=3, sticky='w')
+    tk.Checkbutton(checkbox_frame, text="Configurar Otimização", variable=var_configurar_otimizacao).grid(row=7, column=0, sticky='w')
+    tk.Checkbutton(checkbox_frame, text="Imprimir Loop", variable=var_imprimir_loop).grid(row=7, column=1, sticky='w')
+    tk.Checkbutton(checkbox_frame, text="Gerar GVision", variable=var_gerar_gvision).grid(row=7, column=2, sticky='w')
+    tk.Checkbutton(checkbox_frame, text="Abrir Produção", variable=var_abrir_producao).grid(row=7, column=3, sticky='w')
     
     # Checkboxes adicionados ao frame com layout grid
-    tk.Label(checkbox_frame, text="Nesting process").grid(row=7, column=0, sticky='w')
-    tk.Checkbutton(checkbox_frame, text="Selecionar Todes", variable=var_selecionar_todos_nesting, command=selecionar_todos_nesting).grid(row=7, column=1, sticky='w')
-    tk.Checkbutton(checkbox_frame, text="Importa", variable=var_importa_n).grid(row=8, column=0, sticky='w')
-    tk.Checkbutton(checkbox_frame, text="Exportar", variable=var_exportar_n).grid(row=8, column=1, sticky='w')
-    tk.Checkbutton(checkbox_frame, text="Limpar Lista", variable=var_limpar_lista_n).grid(row=8, column=2, sticky='w')
-    tk.Checkbutton(checkbox_frame, text="Chapas PDF", variable=var_relatorio_pdf_n).grid(row=9, column=0, sticky='w')
-    tk.Checkbutton(checkbox_frame, text="Relatorio PDF", variable=gerar_pdf_html_n).grid(row=9, column=1, sticky='w')
+    tk.Label(checkbox_frame, text="Nesting process").grid(row=8, column=0, sticky='w')
+    tk.Checkbutton(checkbox_frame, text="Selecionar Todes", variable=var_selecionar_todos_nesting, command=selecionar_todos_nesting).grid(row=8, column=1, sticky='w')
+    tk.Checkbutton(checkbox_frame, text="Importa", variable=var_importa_n).grid(row=9, column=0, sticky='w')
+    tk.Checkbutton(checkbox_frame, text="Exportar", variable=var_exportar_n).grid(row=9, column=1, sticky='w')
+    tk.Checkbutton(checkbox_frame, text="Limpar Lista", variable=var_limpar_lista_n).grid(row=9, column=2, sticky='w')
+    tk.Checkbutton(checkbox_frame, text="Chapas PDF", variable=var_relatorio_pdf_n).grid(row=10, column=0, sticky='w')
+    tk.Checkbutton(checkbox_frame, text="Relatorio PDF", variable=gerar_pdf_html_n).grid(row=10, column=1, sticky='w')
     
     tk.Label(checkbox_frame, text="BA-NA-NAS").grid(row=10, column=0, sticky='w')
-    tk.Checkbutton(checkbox_frame, text="Contar Chaps", variable=contar_chapa).grid(row=11, column=0, sticky='w')
-    tk.Checkbutton(checkbox_frame, text="Gerar Json", variable=gerar_json).grid(row=11, column=1, sticky='w')
-    tk.Checkbutton(checkbox_frame, text="Comp Vendedor", variable=compress_vend).grid(row=11, column=2, sticky='w')
-    # tk.Checkbutton(checkbox_frame, text="ArrastarBanana", variable=copiar_pasta).grid(row=11, column=2, sticky='w')
-    tk.Checkbutton(checkbox_frame, text="Remover Lista", variable=remover_lista).grid(row=11, column=3, sticky='w')
+    tk.Checkbutton(checkbox_frame, text="Contar Chaps", variable=contar_chapa).grid(row=12, column=0, sticky='w')
+    tk.Checkbutton(checkbox_frame, text="Gerar Json", variable=gerar_json).grid(row=12, column=1, sticky='w')
+    tk.Checkbutton(checkbox_frame, text="Comp Vendedor", variable=compress_vend).grid(row=12, column=2, sticky='w')
+    # tk.Checkbutton(checkbox_frame, text="ArrastarBanana", variable=copiar_pasta).grid(row=12, column=2, sticky='w')
+    tk.Checkbutton(checkbox_frame, text="Remover Lista", variable=remover_lista).grid(row=12, column=3, sticky='w')
 
     # Frame para organizar os botões
     frame_botoes = tk.Frame(janela)

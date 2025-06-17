@@ -12,6 +12,7 @@ from PIL import Image, ImageTk
 import threading
 import PyPDF2
 import win32gui
+import pandas as pd
 
 from embananador import criar_arquivo_com_pecas, gerar_relatorio_pecas
 
@@ -205,27 +206,41 @@ def process_pdf(vendedor_pasta, x_adjustV, name):
         else:
             return False      
 
-def processo_dinheirinho(pasta):
+def processo_dinheirinho(pasta, aberto = False, fechado = False, vidro = False, resto=True):
     aguarde('./img/proce_money.png')
+    def process_pedido_fabrica_aberto(vendedor_pasta):
+        clicar('./img/proce_money.png', ajusteY=-40)
+        clicar('./img/proce_money.png')
+        ag.press(['down'] * 3 + ['right'] + ['down'] * 5 + ['right'] + ['enter'])
+        time.sleep(0.2)
+        ag.press('enter')
+        aguarde('./img/proce_pdf.png')
+        clicar('./img/proce_pdf.png')
+        salvar(vendedor_pasta, nome='1P_FabricaAberto')
+        time.sleep(0.5)
+        fechar_processo()
+
     def process_pedido_fabrica(vendedor_pasta):
         clicar('./img/proce_money.png', ajusteY=-40)
         clicar('./img/proce_money.png')
         ag.press(['down'] * 3 + ['right'] + ['down'] * 3 + ['enter'])
+        time.sleep(0.2)
+        ag.press('enter')
         aguarde('./img/proce_pdf.png')
         clicar('./img/proce_pdf.png')
-        salvar(vendedor_pasta, nome='PedidoFabrica')
+        salvar(vendedor_pasta, nome='1P_Fabrica')
         time.sleep(0.5)
         fechar_processo()
         
     def process_pedido_vidro(vendedor_pasta):
         clicar('./img/proce_money.png', ajusteY=-40)
         clicar('./img/proce_money.png')
-        ag.press(['down'] * 3 + ['right'] + ['down'] * 4 + ['enter'])
+        ag.press(['down'] * 3 + ['right'] + ['down'] * 4 + ['enter'], interval=1)
+        time.sleep(0.2)
         aguarde('./img/proce_pdf.png')
         if procurar('./img/prd_vidros.png'):
             clicar('./img/proce_pdf.png')  # gera pdf caso ache o validacao
-            salvar(vendedor_pasta, nome='PedidoVidro')
-            log_message('Vidros Gerado!')
+            salvar(vendedor_pasta, nome='1P_Vidro')
         time.sleep(0.5)
         fechar_processo()
         
@@ -233,6 +248,8 @@ def processo_dinheirinho(pasta):
         clicar('./img/proce_money.png', ajusteY=-40)
         clicar('./img/proce_money.png')
         ag.press(['down'] * 3 + ['right'] + ['down'] * 2 + ['enter'])
+        time.sleep(0.2)
+        ag.press('enter')
         aguarde('./img/proce_pdf.png')
         clicar('./img/proce_pdf.png')
         salvar(vendedor_pasta, nome='ListagemCompleta')
@@ -335,15 +352,18 @@ def processo_dinheirinho(pasta):
         
     # Chamando as funções otimizadas
     vendedor_pasta = criar_pasta_vendedor(pasta, 'VENDEDOR')
-    #process_pedido_fabrica(vendedor_pasta)
-    #process_pedido_vidro(vendedor_pasta)
-    process_listagem_completa(vendedor_pasta)
-    process_pcp(pasta)
-    variavel = process_todos_relatorios(vendedor_pasta)
-    time.sleep(1)
-    verificar_e_apagar_pdf(vendedor_pasta)
-    return variavel
-
+    if fechado: process_pedido_fabrica(vendedor_pasta)
+    if aberto: process_pedido_fabrica_aberto(vendedor_pasta)
+    if vidro: process_pedido_vidro(vendedor_pasta)
+    if resto:
+        process_listagem_completa(vendedor_pasta)
+        process_pcp(pasta)
+        variavel = process_todos_relatorios(vendedor_pasta)
+        time.sleep(1)
+        verificar_e_apagar_pdf(vendedor_pasta)
+        return variavel
+    else:
+        return False
 log_file_P = 'promob.log'
 
 def processo_completin():
@@ -351,23 +371,34 @@ def processo_completin():
         try:
             with open(log_file_P, 'a') as log:
                 log_message(f'Processando pasta: {pasta}\n')
-            
+            leite = False
             for pasta in pastas:
-                if var_dinheirinho.get():
+                if var_dinheirinho.get() or var_fechado.get() or var_aberto.get() or var_vidro.get():
                     log_message("Iniciando Relatorios...")
-                    leite = processo_dinheirinho(pasta)
+                    fechado = False
+                    aberto = False
+                    vidro = False
+                    resto = False
+                    if var_fechado.get(): fechado = True
+                    if var_aberto.get(): aberto = True
+                    if var_vidro.get(): vidro = True
+                    if var_dinheirinho.get(): resto = True
+                    leite = processo_dinheirinho(pasta, fechado, aberto, vidro, resto)
                 if var_gplan.get():
                     log_message("Gerando Gplan...")
                     processo_gplan(pasta)
                 if var_producao.get():
                     log_message("Copiando Porojeto_producao ...")
                     projeto_producao(pasta)
-                if var_RPecas.get():
-                    log_message("Gerando Relatorio Pecas ...")
-                    gerar_relatorio_pecas(pasta+"Projeto_producao.xls")
-                if var_NPecas.get():
-                    log_message("Gerando Relatorio Pecas ...")
-                    criar_arquivo_com_pecas(pasta+"Projeto_producao.xls")
+                if var_RPecas.get() or var_NPecas.get():
+                    arquivo = pasta+"/Projeto_producao.xls"
+                    df = pd.read_excel(arquivo)
+                    if var_RPecas.get():
+                        log_message("Gerando Relatorio Pecas ...")
+                        gerar_relatorio_pecas(df, arquivo)
+                    if var_NPecas.get():
+                        log_message("Gerando Relatorio Pecas ...")
+                        criar_arquivo_com_pecas(df, arquivo)
                 if leite:
                     #mostrar_mensagem_erro("Aviso: TEM ROUTER SALVE O DESENHO!")
                     ag.alert(text="Aviso: TEM ROUTER SALVE O DESENHO!", title="SALVE IMEDIATAMENTE", button="SALVADO!")
@@ -494,13 +525,17 @@ def main():
     caminho_label = tk.Label(janela, text="", fg="blue")
     caminho_label.pack(pady=5)
 
-    global var_gplan, var_dinheirinho, var_producao, var_RPecas, var_NPecas
+    global var_gplan, var_dinheirinho, var_producao, var_RPecas, var_NPecas, var_fechado, var_aberto, var_vidro
     # Checkboxes para selecionar quais processos executar
     var_gplan = tk.BooleanVar(value=True)
     var_dinheirinho = tk.BooleanVar(value=True)
     var_producao = tk.BooleanVar(value=True)
     var_RPecas = tk.BooleanVar(value=False)
     var_NPecas = tk.BooleanVar(value=True)
+
+    var_fechado = tk.BooleanVar(value=True)
+    var_aberto = tk.BooleanVar(value=True)
+    var_vidro = tk.BooleanVar(value=False)
     
     # Frame para organizar os checkboxes horizontalmente
     checkbox_frame = tk.Frame(janela)
@@ -508,6 +543,11 @@ def main():
 
     # Checkboxes adicionados ao frame com layout grid
     tk.Checkbutton(checkbox_frame, text="Processo Dinheirinho", variable=var_dinheirinho).grid(row=0, column=0, sticky='w', padx=5)
+
+    tk.Checkbutton(checkbox_frame, text="Pedido Fabrica", variable=var_fechado).grid(row=2, column=0, sticky='w', padx=5)
+    tk.Checkbutton(checkbox_frame, text="Pedido Fabrica ABERTO", variable=var_aberto).grid(row=2, column=1, sticky='w', padx=5)
+    tk.Checkbutton(checkbox_frame, text="Pedido VIDROS", variable=var_vidro).grid(row=2, column=2, sticky='w', padx=5)
+
     tk.Checkbutton(checkbox_frame, text="Processo GPlan", variable=var_gplan).grid(row=0, column=1, sticky='w', padx=5)
     tk.Checkbutton(checkbox_frame, text="Projeto Produção", variable=var_producao).grid(row=0, column=2, sticky='w', padx=5)
     tk.Checkbutton(checkbox_frame, text="Relatorio Pecas", variable=var_RPecas).grid(row=1, column=1, sticky='w', padx=5)
