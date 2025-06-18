@@ -301,7 +301,7 @@ def processo_completin(pasta):
         if var_aberto.get(): aberto = True
         if var_vidro.get(): vidro = True
         if var_dinheirinho.get(): resto = True
-        router = processo_dinheirinho(pasta, fechado, aberto, vidro, resto)
+        router = processo_dinheirinho(pasta, aberto, fechado, vidro, resto)
     if var_gplan.get():
         with open(log_file_P, 'a') as log:
             log.write("Gerando Gplan...")
@@ -493,6 +493,51 @@ def main():
         var_relatorio_pdf_n.set(estado)
         gerar_pdf_html_n.set(estado)
 
+    def selecionar_pfabrica():
+        estado = not var_selecionar_pfabrica.get()
+        estado2 = var_selecionar_pfabrica.get()
+        var_fechado.set(estado2)
+        var_aberto.set(estado2)
+        var_vidro.set(estado2)
+
+        var_selecionar_todos_promob.set(estado)
+        var_gplan.set(estado)
+        var_dinheirinho.set(estado)
+        var_producao.set(estado)
+        
+        var_NPecas.set(estado)
+
+        var_moveu.set(estado)
+
+        if var_moveu.get():
+            entry_vendedor.config(state='normal')
+            entry_cliente.config(state='normal')
+            date_prazo.config(state='normal')
+        else:
+            entry_vendedor.config(state='disabled')
+            entry_cliente.config(state='disabled')
+            date_prazo.config(state='disabled')
+
+        var_selecionar_todos_gplan.set(estado)
+        var_novo_projeto.set(estado)
+        var_importa.set(estado)
+        var_importar_projeto.set(estado)
+        var_abrir_parametro.set(estado)
+        var_configurar_otimizacao.set(estado)
+        var_imprimir_loop.set(estado)
+        var_gerar_gvision.set(estado)
+        var_abrir_producao.set(estado)
+
+        var_selecionar_todos_nesting.set(estado)
+        var_importa_n.set(estado)
+        var_exportar_n.set(estado)
+        var_limpar_lista_n.set(estado)
+        var_relatorio_pdf_n.set(estado)
+        gerar_pdf_html_n.set(estado)
+
+        gerar_json.set(estado)
+        compress_vend.set(estado)
+
     def ok():
         
         if not pastas:
@@ -594,6 +639,7 @@ def main():
                 #clicar("./img/abrir_gplan.png")     
                 ag.hotkey('win', '6')
                 time.sleep(0.2)
+                ag.hotkey('win', '6')
                 # except ValueError as e:  # Captura especificamente o erro lançado na função clicar
                 #     with open(log_file_G, 'a') as log:
                 #         log.write(f'Erro ao processar pasta {pasta}: {e}\n')
@@ -674,14 +720,14 @@ def main():
             checkbutton_selecionar_todos_promob.config(state='disabled')
             checkbutton_gplan.config(state='disabled')
             checkbutton_dinheirinho.config(state='disabled')
-            var_abrir_producao.set(1)
-            var_limpar_lista_n.set(1)
+            # var_abrir_producao.set(1)
+            # var_limpar_lista_n.set(1)
         else:
             # Reabilita os checkboxes se apenas uma pasta estiver selecionada
             checkbutton_selecionar_todos_promob.config(state='normal')
             checkbutton_gplan.config(state='normal')
             checkbutton_dinheirinho.config(state='normal')
-            
+    
     def on_close():
         janela.destroy()
         os._exit(0)
@@ -702,14 +748,15 @@ def main():
     pastas=[]
 
     # Variáveis para checkboxes (definidas após criar a janela)
-    global var_gplan, var_dinheirinho, var_producao, var_RPecas, var_NPecas, var_fechado, var_aberto, var_vidro
+    global var_gplan, var_dinheirinho, var_producao, var_RPecas, var_NPecas, var_fechado, var_aberto, var_vidro, var_selecionar_pfabrica
     var_selecionar_todos_promob = IntVar(value=0)
     var_gplan = IntVar(value=1)
     var_dinheirinho = IntVar(value=1)
 
+    var_selecionar_pfabrica = IntVar(value=1)
     var_fechado = IntVar(value=1)
     var_aberto = IntVar(value=1)
-    var_vidro = IntVar(value=0)
+    var_vidro = IntVar(value=1)
 
     var_producao = IntVar(value=1)
     var_RPecas = IntVar(value=0)
@@ -765,9 +812,10 @@ def main():
     )
     checkbutton_selecionar_todos_promob.grid(row=1, column=1, sticky='w')
 
-    tk.Checkbutton(checkbox_frame, text="Pedido Fabrica", variable=var_fechado).grid(row=0, column=1, sticky='w', padx=5)
-    tk.Checkbutton(checkbox_frame, text="Pedido Fabrica ABERTO", variable=var_aberto).grid(row=0, column=2, sticky='w', padx=5)
-    tk.Checkbutton(checkbox_frame, text="Pedido VIDROS", variable=var_vidro).grid(row=0, column=3, sticky='w', padx=5)
+    tk.Checkbutton(checkbox_frame, text="Pedidos PDF -->", variable=var_selecionar_pfabrica, command=selecionar_pfabrica).grid(row=0, column=0, sticky='w', padx=5)
+    tk.Checkbutton(checkbox_frame, text="Pedido VIDROS", variable=var_vidro).grid(row=0, column=1, sticky='w', padx=5)
+    tk.Checkbutton(checkbox_frame, text="Pedido Fabrica", variable=var_fechado).grid(row=0, column=2, sticky='w', padx=5)
+    tk.Checkbutton(checkbox_frame, text="Pedido Fabrica ABERTO", variable=var_aberto).grid(row=0, column=3, sticky='w', padx=5)
 
     checkbutton_dinheirinho = tk.Checkbutton(checkbox_frame, text="Processo Dinheirinho", variable=var_dinheirinho).grid(row=1, column=3, sticky='w')
     checkbutton_gplan = tk.Checkbutton(checkbox_frame, text="Processo GPlan", variable=var_gplan).grid(row=2, column=0, sticky='w')
@@ -797,7 +845,7 @@ def main():
     # Carregar a imagem
     imagem = carregar_imagem("./img/careca.png")
     # Criar o Label com a imagem e fixá-lo em uma posição específica usando .place()
-    label_imagem = tk.Label(checkbox_frame, image=imagem).place(x=330, y=140)
+    label_imagem = tk.Label(checkbox_frame, image=imagem).place(x=330, y=180)
 
     tk.Label(checkbox_frame, text="GPlan process").grid(row=5, column=0, sticky='w')
     tk.Checkbutton(checkbox_frame, text="Selecionar Todes", variable=var_selecionar_todos_gplan, command=selecionar_todos_gplan).grid(row=5, column=1, sticky='w')
@@ -819,7 +867,7 @@ def main():
     tk.Checkbutton(checkbox_frame, text="Chapas PDF", variable=var_relatorio_pdf_n).grid(row=10, column=0, sticky='w')
     tk.Checkbutton(checkbox_frame, text="Relatorio PDF", variable=gerar_pdf_html_n).grid(row=10, column=1, sticky='w')
     
-    tk.Label(checkbox_frame, text="BA-NA-NAS").grid(row=10, column=0, sticky='w')
+    tk.Label(checkbox_frame, text="BA-NA-NAS").grid(row=11, column=0, sticky='w')
     tk.Checkbutton(checkbox_frame, text="Contar Chaps", variable=contar_chapa).grid(row=12, column=0, sticky='w')
     tk.Checkbutton(checkbox_frame, text="Gerar Json", variable=gerar_json).grid(row=12, column=1, sticky='w')
     tk.Checkbutton(checkbox_frame, text="Comp Vendedor", variable=compress_vend).grid(row=12, column=2, sticky='w')
