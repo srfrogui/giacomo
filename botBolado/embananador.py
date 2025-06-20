@@ -189,6 +189,9 @@ def contar_pecas(df):
         (df['PEÇA DESCRIÇÃO'].str.contains('_PRAT_DUP_CORTE', na=False)) |
         (df['PEÇA DESCRIÇÃO'].str.contains('AFAST_DUP_CORTE', na=False)) |
         (df['PEÇA DESCRIÇÃO'].str.contains('_PAINEL_ENG_CORTE', na=False)) |
+        (df['PEÇA DESCRIÇÃO'].str.contains('_PNL_TAMB_CORTE_-_', na=False)) |
+        (df['PEÇA DESCRIÇÃO'].str.contains('_PAINEL_TAMB_CORTE', na=False)) |
+        (df['PEÇA DESCRIÇÃO'].str.contains('_PNL_TAMB_CORTE_-_Usinar', na=False)) |
         (df['PEÇA DESCRIÇÃO'].str.contains('_ENGROSSO_', na=False)) |
         ((df['PEÇA DESCRIÇÃO'].str.contains('_ENG', na=False)) & (df['ESPESSURA'] == '6'))
     )
