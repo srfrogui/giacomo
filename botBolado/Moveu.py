@@ -89,6 +89,7 @@ imagem = {
     "mais": "./img/mov_mais.png",
     "ref": "./img/mov_ref.png",
     "importar": "./img/mov_import.png",
+    "mov_login": "./img/mov_login.png",
     "reftab": "./img/mov_refcarregatabela.png"
 }
 
@@ -136,9 +137,8 @@ def moveu(pasta, prazo, nomemov):
     ag.hotkey('win','r')
     ag.write('https://moveoecomobile.projje.com.br/#/pedidos')
     ag.press('enter')
-    time.sleep(5)
-    ag.press('tab')
-    ag.press('enter')
+    aguarde(imagem['mov_login'])
+    clicar(imagem['mov_login'])
     
     aguarde(imagem["ref"])
     ag.press('tab')
