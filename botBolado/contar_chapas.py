@@ -13,14 +13,13 @@ from tkinter.filedialog import askdirectory
 
 
 # Listas de palavras para remoção
-palavras_para_removern = ["GREENPLAC", "DURATEX", "ARAUCO", "GUARARAPES", "ESSENCIAL", "WOOD", "MULTIMARCAS"]
-palavras_para_remover2n = ["MADEIRAS"]
-palavras_para_remover = []
+#palavras_para_removern = ["GREENPLAC", "DURATEX", "ARAUCO", "GUARARAPES", "ESSENCIAL", "WOOD", "MULTIMARCAS"]
+#palavras_para_remover2n = ["MADEIRAS"]
+palavras_para_remover = ["M2", "CHAPA"]
 palavras_para_remover2 = []
 
 # Função para extrair dados
 def extrair_gplan_pdf(pasta_vendedor):
-    print("g")
     # Dicionário para armazenar os resultados
     resultado = defaultdict(int)
 

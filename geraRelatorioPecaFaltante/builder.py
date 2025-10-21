@@ -3,7 +3,7 @@ import sys
 
 # Dependências adicionais podem ser adicionadas aqui, se necessário
 build_exe_options = {
-    "packages": ["tkinter", "os", "shutil", "reportlab", "pandas", "PIL", "win32com.client", "glob", ],
+    "packages": ["tkinter", "os", "shutil", "reportlab", "pandas", "PIL", "win32com.client", "glob", python_barcode],
     "excludes": [],  # Exclua pacotes desnecessários
     "include_files": [],
     "optimize": 2,

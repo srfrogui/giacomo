@@ -144,6 +144,17 @@ def projeto_producao(pasta):
             col_observacoes = idx
         if value == 'AMBIENTE':
             col_ambiente = idx
+        if value == 'PEÇA DESCRIÇÃO':
+            col_peca_desc = idx
+
+    # Verificar se existe "_PAINEL_TAMB_CORTE" na coluna PEÇA DESCRIÇÃO
+    tamburato = False
+    if col_peca_desc is not None:
+        for row in range(1, sheet.nrows):
+            cell_value = str(sheet.cell_value(row, col_peca_desc)).strip()
+            if "_PAINEL_TAMB_CORTE" in cell_value:
+                tamburato = True
+                break
 
     # Variável para controlar se houve alterações
     alteracoes_realizadas = False
@@ -179,6 +190,7 @@ def projeto_producao(pasta):
     else:
         print("As colunas 'OBSERVAÇÕES-PROMOB' ou 'AMBIENTE' não foram encontradas.")
         log_message("As colunas 'OBSERVAÇÕES-PROMOB' ou 'AMBIENTE' não foram encontradas.")
+    return tamburato
     
 def processo_gplan(pasta):
     clicar('./img/proce_gplan.png', ajusteY=-40)
@@ -206,13 +218,31 @@ def process_pdf(vendedor_pasta, x_adjustV, name):
         else:
             return False      
 
+def copiar_tamburato(pasta):
+    origem = r".\TAMBURATO1007102025"
+
+    # Cria destino se não existir
+    os.makedirs(pasta, exist_ok=True)
+
+    # Copia todo o conteúdo da pasta
+    for item in os.listdir(origem):
+        caminho_origem = os.path.join(origem, item)
+        caminho_destino = os.path.join(pasta, item)
+        try:
+            if os.path.isdir(caminho_origem):
+                shutil.copytree(caminho_origem, caminho_destino, dirs_exist_ok=True)
+            else:
+                shutil.copy2(caminho_origem, caminho_destino)
+        except Exception as e:
+            print(f"Erro ao copiar {item}: {e}")
+
 def processo_dinheirinho(pasta, aberto = False, fechado = False, vidro = False, resto=True):
     aguarde('./img/proce_money.png')
     def process_pedido_fabrica_aberto(vendedor_pasta):
         clicar('./img/proce_money.png', ajusteY=-40)
         clicar('./img/proce_money.png')
         ag.press(['down'] * 3 + ['right'] + ['down'] * 5 + ['right'] + ['enter'])
-        time.sleep(0.2)
+        time.sleep(0.5)
         ag.press('enter')
         aguarde('./img/proce_pdf.png')
         clicar('./img/proce_pdf.png')
@@ -224,7 +254,7 @@ def processo_dinheirinho(pasta, aberto = False, fechado = False, vidro = False, 
         clicar('./img/proce_money.png', ajusteY=-40)
         clicar('./img/proce_money.png')
         ag.press(['down'] * 3 + ['right'] + ['down'] * 3 + ['enter'])
-        time.sleep(0.2)
+        time.sleep(0.5)
         ag.press('enter')
         aguarde('./img/proce_pdf.png')
         clicar('./img/proce_pdf.png')
@@ -248,7 +278,7 @@ def processo_dinheirinho(pasta, aberto = False, fechado = False, vidro = False, 
         clicar('./img/proce_money.png', ajusteY=-40)
         clicar('./img/proce_money.png')
         ag.press(['down'] * 3 + ['right'] + ['down'] * 2 + ['enter'])
-        time.sleep(0.2)
+        time.sleep(0.5)
         ag.press('enter')
         aguarde('./img/proce_pdf.png')
         clicar('./img/proce_pdf.png')
@@ -276,13 +306,13 @@ def processo_dinheirinho(pasta, aberto = False, fechado = False, vidro = False, 
         ag.press(['down'] * 3 + ['right'] + ['down'] * 6 + ['right'] + ['enter'])
         aguarde('./img/proce_pdf.png')
         # process_pdf(vendedor_pasta, 0, 'Listagem_Pecas')
-        # process_pdf(vendedor_pasta, 480, 'Frentes')
+        process_pdf(vendedor_pasta, 480, 'Frentes')
         variavel = process_pdf(vendedor_pasta, 600, 'Router')
         process_pdf(vendedor_pasta, 700, 'Perfil')
         process_pdf(vendedor_pasta, 800, 'Composto')
         fechar_processo()
         return variavel
-        
+
     def verificar_e_apagar_pdf(vendedor_pasta): # fazer com oo outro pdf LISTAGEM.pdf >> Abrir em 33mm
 
     #AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
@@ -317,34 +347,34 @@ def processo_dinheirinho(pasta, aberto = False, fechado = False, vidro = False, 
         
     #AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA    
        
-        # caminho_frentes = os.path.join(vendedor_pasta, 'Frentes.pdf')
-        # print("Caminho:frentes", caminho_frentes)
-        # if os.path.exists(caminho_frentes):
-        #     try:
-        #         with open(caminho_frentes, 'rb') as arquivo:
-        #             leitor = PyPDF2.PdfReader(arquivo)
-        #             conteudo = ""
+        caminho_frentes = os.path.join(vendedor_pasta, 'Frentes.pdf')
+        print("Caminho:frentes", caminho_frentes)
+        if os.path.exists(caminho_frentes):
+            try:
+                with open(caminho_frentes, 'rb') as arquivo:
+                    leitor = PyPDF2.PdfReader(arquivo)
+                    conteudo = ""
 
-        #             for pagina in leitor.pages:
-        #                 conteudo += pagina.extract_text() or ""
+                    for pagina in leitor.pages:
+                        conteudo += pagina.extract_text() or ""
 
-        #         if "CORTE 45G" not in conteudo and "PERFIL 45G" not in conteudo and "Articulador" not in conteudo and "Utilitário" not in conteudo:
-        #             for tentativa in range(10):  # Tenta por 10 vezes
-        #                 try:
-        #                     os.remove(caminho_frentes)
-        #                     print(f"{caminho_frentes} apagado, pois não contém os termos necessários.")
-        #                     break
-        #                 except PermissionError:
-        #                     print(f"Tentativa {tentativa + 1} falhou. O arquivo está em uso. Tentando novamente...")
-        #                     time.sleep(1)  # Aguardando 1 segundo antes de tentar novamente
-        #             else:
-        #                 print(f"Falha ao remover {caminho_frentes} após várias tentativas.")
-        #         else:
-        #             print(f"{caminho_frentes} mantido, pois contém os termos necessários.")
-        #     except Exception as e:
-        #         print(f"Erro ao ler o PDF: {e}")
-        # else:
-        #     print(f"Arquivo {caminho_frentes} não encontrado.")
+                if "CORTE 45G" not in conteudo and "PERFIL 45G" not in conteudo:
+                    for tentativa in range(10):  # Tenta por 10 vezes
+                        try:
+                            os.remove(caminho_frentes)
+                            print(f"{caminho_frentes} apagado, pois não contém os termos necessários.")
+                            break
+                        except PermissionError:
+                            print(f"Tentativa {tentativa + 1} falhou. O arquivo está em uso. Tentando novamente...")
+                            time.sleep(1)  # Aguardando 1 segundo antes de tentar novamente
+                    else:
+                        print(f"Falha ao remover {caminho_frentes} após várias tentativas.")
+                else:
+                    print(f"{caminho_frentes} mantido, pois contém os termos necessários.")
+            except Exception as e:
+                print(f"Erro ao ler o PDF: {e}")
+        else:
+            print(f"Arquivo {caminho_frentes} não encontrado.")
         print('minipa')
         
     def fechar_processo():
@@ -389,7 +419,9 @@ def processo_completin():
                     processo_gplan(pasta)
                 if var_producao.get():
                     log_message("Copiando Porojeto_producao ...")
-                    projeto_producao(pasta)
+                    tambu = projeto_producao(pasta)
+                    if tambu:
+                        copiar_tamburato(pasta)
                 if var_RPecas.get() or var_NPecas.get():
                     arquivo = pasta+"/Projeto_producao.xls"
                     df = pd.read_excel(arquivo)

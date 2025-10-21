@@ -1,6 +1,6 @@
 # Início do script
 from GAuto import novo_projeto, importa, importar_projeto, abrir_parametro, configurar_optimizacao, imprimir_loop, gerar_gvision, abrir_producao, verificar_arquivos, extrair_nome, log_file_G
-from PromobAuto import processo_dinheirinho, processo_gplan, atualizar_frame_pastas, mostrar_mensagem_erro, log_file_P
+from PromobAuto import processo_dinheirinho, processo_gplan, atualizar_frame_pastas, mostrar_mensagem_erro, log_file_P, copiar_tamburato
 from embananador import criar_arquivo_com_pecas, gerar_relatorio_pecas, gerar_aciete, arquivo_ripado
 from G2Auto import obter_caminhos, importar_optimiza, exportar_plano_corte , limpar_lista, log_file_N, clicar, aguarde, procurar, obter_nome,compress_to_rar, gerar_relatorio_pdf, gerar_pdfs
 from Moveu import moveu, log_file_M
@@ -247,6 +247,17 @@ def projeto_producao(pasta):
             col_observacoes = idx
         if value == 'AMBIENTE':
             col_ambiente = idx
+        if value == 'PEÇA DESCRIÇÃO':
+            col_peca_desc = idx
+
+    # Verificar se existe "_PAINEL_TAMB_CORTE" na coluna PEÇA DESCRIÇÃO
+    tamburato = False
+    if col_peca_desc is not None:
+        for row in range(1, sheet.nrows):
+            cell_value = str(sheet.cell_value(row, col_peca_desc)).strip()
+            if "_PAINEL_TAMB_CORTE" in cell_value:
+                tamburato = True
+                break
 
     # Variável para controlar se houve alterações
     alteracoes_realizadas = False
@@ -282,7 +293,7 @@ def projeto_producao(pasta):
     else:
         print("As colunas 'OBSERVAÇÕES-PROMOB' ou 'AMBIENTE' não foram encontradas.")
         log_message("As colunas 'OBSERVAÇÕES-PROMOB' ou 'AMBIENTE' não foram encontradas.")
-
+    return tamburato
 
 def processo_completin(pasta):
     with open(log_file_P, 'a') as log:
@@ -325,13 +336,14 @@ def processo_completin_loopavel(pasta):
     with open(log_file_P, 'a') as log:
         log.write(f'Processando L pasta: {pasta}\n')
     log_message(f'Processando L pasta: {pasta}\n')
-    print("ovo")
+    
     if var_producao.get():
         with open(log_file_P, 'a') as log:
             log.write("Copiando Porojeto_producao ...")
         log_message("Copiando Porojeto_producao ...")
-        projeto_producao(pasta)
-    
+        tambu = projeto_producao(pasta)
+        if tambu:
+            copiar_tamburato(pasta)
     try:
         arquivo_xls = os.path.join(pasta, 'Projeto_producao.xls')
         df = pd.read_excel(arquivo_xls)
@@ -350,9 +362,8 @@ def processo_completin_loopavel(pasta):
         with open(log_file_P, 'a') as log:
             log.write("Contando Pecas ...")
         log_message("Contando Pecas ...")
-        arquivo_ripado(df, arquivo_xls)
+        #arquivo_ripado(df, arquivo_xls)
         criar_arquivo_com_pecas(df, arquivo_xls)
-        
         
     with open(log_file_P, 'a') as log:
         log.write(f'Processamento da {extrair_nome(pasta)}: concluido \n')
@@ -753,10 +764,10 @@ def main():
     var_gplan = IntVar(value=1)
     var_dinheirinho = IntVar(value=1)
 
-    var_selecionar_pfabrica = IntVar(value=1)
-    var_fechado = IntVar(value=1)
-    var_aberto = IntVar(value=1)
-    var_vidro = IntVar(value=1)
+    var_selecionar_pfabrica = IntVar(value=0)
+    var_fechado = IntVar(value=0)
+    var_aberto = IntVar(value=0)
+    var_vidro = IntVar(value=0)
 
     var_producao = IntVar(value=1)
     var_RPecas = IntVar(value=0)

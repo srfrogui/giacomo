@@ -201,9 +201,15 @@ class GeradorPDFApp:
         y_pos = margem_superior - 10
 
         # Configurações para cada bloco de peça
-        largura_bloco = 140  # Aumentada para acomodar mais informações 
-        altura_bloco = 180   # Aumentada para acomodar códigos de barras
+        # 4 x 2 
+        largura_bloco = 180  # Aumentada para acomodar mais informações 
+        altura_bloco = 220   # Aumentada para acomodar códigos de barras
         margem_bloco = 10
+
+        # 5 x 3 
+        # largura_bloco = 140  # Aumentada para acomodar mais informações 
+        # altura_bloco = 180   # Aumentada para acomodar códigos de barras
+        # margem_bloco = 10
 
         # Posições iniciais
         x_pos = margem_esquerda
@@ -304,20 +310,20 @@ class GeradorPDFApp:
             
             # Informações da peça
             c.setFillColor(colors.black)
-            c.setFont("Helvetica-Bold", 7)
+            c.setFont("Helvetica-Bold", 10)
             
             # Escrever informações
-            linha_altura = y - 8
+            linha_altura = y - 9
             
             # Primeira linha (PCP e Desenho)
-            c.setFont("Helvetica-Bold", 8)
+            c.setFont("Helvetica-Bold", 10)
             c.drawString(x + 5, linha_altura, info_linhas[0])
-            linha_altura -= 10
+            linha_altura -= 12
             
             # Furações com código de barras
             for linha in info_linhas[1:]:  # Pular a primeira linha (já escrita)
                 if linha.startswith("Furação"):
-                    c.setFont("Helvetica", 7)
+                    c.setFont("Helvetica", 9)
                     # Extrair o valor da furação
                     code_value = linha.split(": ")[1] if ": " in linha else ""
                     
@@ -345,9 +351,9 @@ class GeradorPDFApp:
                             })
                             
                             # Posicionar o código de barras
-                            barcode_x = x + 75
+                            barcode_x = x + 95
                             barcode_y = linha_altura - 6
-                            barcode_width = 60
+                            barcode_width = 80
                             barcode_height = 15
                             
                             # Inserir no PDF usando o arquivo temporário
@@ -363,14 +369,14 @@ class GeradorPDFApp:
                             c.setFillColor(colors.black)
                             c.rect(x + 60, linha_altura - 8, 80, 12, fill=1, stroke=0)
                             c.setFillColor(colors.white)
-                            c.setFont("Helvetica", 6)
+                            c.setFont("Helvetica", 9)
                             c.drawString(x + 65, linha_altura - 6, code_value[:15])
                             c.setFillColor(colors.black)
                     
                     linha_altura -= 15  # Espaço para furação + código de barras
             
             # Demais informações (com quebra de linha se necessário)
-            c.setFont("Helvetica", 7)
+            c.setFont("Helvetica", 10)
             for linha in outras_info:
                 # Quebrar linha muito longa
                 if len(linha) > 35:

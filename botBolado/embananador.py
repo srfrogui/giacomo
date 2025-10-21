@@ -34,6 +34,9 @@ def gerar_relatorio_pecas(df, arquivo_excel, nome=None):
         (df['PEÇA DESCRIÇÃO'].str.contains('_PRAT_DUP_CORTE', na=False)) |
         (df['PEÇA DESCRIÇÃO'].str.contains('AFAST_DUP_CORTE', na=False)) |
         (df['PEÇA DESCRIÇÃO'].str.contains('_PAINEL_ENG_CORTE', na=False)) |
+        (df['PEÇA DESCRIÇÃO'].str.contains('_PNL_TAMB_CORTE_-_', na=False)) |
+        (df['PEÇA DESCRIÇÃO'].str.contains('_PAINEL_TAMB_CORTE', na=False)) |
+        (df['PEÇA DESCRIÇÃO'].str.contains('_PNL_TAMB_CORTE_-_Usinar', na=False)) |
         (df['PEÇA DESCRIÇÃO'].str.contains('_ENGROSSO_', na=False)) |
         ((df['PEÇA DESCRIÇÃO'].str.contains('_ENG', na=False)) & (df['ESPESSURA'] == '6'))
     )
@@ -42,11 +45,12 @@ def gerar_relatorio_pecas(df, arquivo_excel, nome=None):
     df_filtered = df[~mask_exclude]
 
     # Filtrar e organizar os dados
-    relatorio_pecas = df_filtered[['PEÇA DESCRIÇÃO', 'CLIENTE - DADOS DO CLIENTE', 'ALTURA (X)', 'PROF (Y)', 'ESPESSURA', 'AMBIENTE', 'DESENHO']]
+    relatorio_pecas = df_filtered[['PEÇA DESCRIÇÃO', 'DESCRIÇÃO DO MATERIAL', 'ALTURA (X)', 'PROF (Y)', 'ESPESSURA', 'AMBIENTE', 'DESENHO']]
 
     relatorio_pecas = relatorio_pecas.rename(columns={
         'PEÇA DESCRIÇÃO': 'PEÇA DESCRIÇÃO',
-        'CLIENTE - DADOS DO CLIENTE': 'CLIENTE',
+        'DESCRIÇÃO DO MATERIAL': 'MATERIAL',
+        # 'ID MÓDULO': 'MOD',
         'ALTURA (X)': 'ALT (X)',
         'PROF (Y)': 'PROF (Y)',
         'ESPESSURA': 'ESP (Z)',
@@ -62,6 +66,12 @@ def gerar_relatorio_pecas(df, arquivo_excel, nome=None):
 
     # Adicionar a coluna NUMERADOR
     relatorio_pecas['NUM'] = range(1, len(relatorio_pecas) + 1)
+
+    # Criar uma cópia para exibição e substituir valores de ALT e PROF por "XX"
+    # relatorio_pecas_display = relatorio_pecas.copy()
+    # relatorio_pecas_display['ALT (X)'] = "XX"
+    # relatorio_pecas_display['PROF (Y)'] = "XX"
+    # data = [relatorio_pecas_display.columns.tolist()] + formatar_valores(relatorio_pecas_display.values.tolist())
 
     # Formatar valores
     data = [relatorio_pecas.columns.tolist()] + formatar_valores(relatorio_pecas.values.tolist())
@@ -311,11 +321,11 @@ def arquivo_ripado(df, arquivo, nome=None):
             pdf.add_page()
             pdf.set_font('Arial', 'B', 7)
             pdf.cell(50, 5, "PEÇA DESCRIÇÃO", border=1, align='C')
-            pdf.cell(30, 5, str(row['CLIENTE - DADOS DO CLIENTE'])[:20], border=1, align='C')
-            pdf.cell(10, 5, "MAT", border=1, align='C')
+            pdf.cell(30, 5, "CLIENTE", border=1, align='C')
+            pdf.cell(10, 5, "PAI", border=1, align='C')
             pdf.cell(10, 5, "ALT", border=1, align='C')
             pdf.cell(10, 5, "PROF", border=1, align='C')
-            pdf.cell(50, 6, str(row['DESCRIÇÃO DO MATERIAL'])[-29:], border=1, align='C', fill=True)
+            pdf.cell(50, 5, "DESCRIÇÃO DO MATERIAL", border=1, align='C')
             pdf.cell(30, 5, "Roteiro", border=1, align='C')
             pdf.ln()
             

@@ -282,13 +282,13 @@ def exportar_plano_corte(nesting, corte):
                         time.sleep(1)
                         print('fds')
                         raise Exception('ovo')
-        clicar(imagem['val_plan_cort'], ajusteX=320, ajusteY=280) #botao selecionar
+        clicar(imagem['val_plan_cort'], ajusteX=430, ajusteY=350) #botao selecionar
         salvar(corte)
-        clicar(imagem['val_plan_cort'], ajusteX=320, ajusteY=350) #botao exportar
+        clicar(imagem['val_plan_cort'], ajusteX=430, ajusteY=420) #botao exportar
         aguarde(imagem['pausa_exportar_plan_corte'])
         ag.press('enter')
         clicar(imagem['exportar_plan_cort'])
-        clicar(imagem['expor_nc_conf'], ajusteY= -230) #botao selecionar 
+        clicar(imagem['expor_nc_conf'], ajusteY= -260) #botao selecionar 
         salvar(nesting)
         clicar(imagem['expor_nc_conf']) #botao exportar 
         aguarde(imagem['val_explort_nc']) #aguarde exportacao
